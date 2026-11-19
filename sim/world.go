@@ -117,6 +117,25 @@ func (w *World) RunUntil(t time.Duration) {
 	}
 }
 
+// RunUntilOr is RunUntil, but it also stops as soon as stop returns true
+// after an event (used to end a run at the first invariant violation).
+func (w *World) RunUntilOr(t time.Duration, stop func() bool) {
+	for w.queue.Len() > 0 && !stop() {
+		next := w.queue[0]
+		if next.done {
+			heap.Pop(&w.queue)
+			continue
+		}
+		if next.at > t {
+			break
+		}
+		w.Step()
+	}
+	if t > w.now && !stop() {
+		w.now = t
+	}
+}
+
 // RunFor runs the simulation for d of virtual time.
 func (w *World) RunFor(d time.Duration) { w.RunUntil(w.now + d) }
 
