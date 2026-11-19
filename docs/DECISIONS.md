@@ -124,11 +124,13 @@ covers many configurations, and the seed alone still reproduces the run.
 no duplication); a leader sends at most one entry per message.
 
 **D14. TLC bounds.**
-Limited by the machine. On 2026-11-19 the disk had under 100 MB free, because a GNOME indexer was
-looping and had filled `/var/log/syslog` with 18.5 GB. Exhaustive checking was therefore only
-possible at terms ≤ 2 and log length ≤ 1; larger bounds used TLC's simulation mode. See
-`results/tlc.md`. **Next:** after freeing disk space, run `./scripts/tlc.sh check 4 1 1` with the
-bug on, so TLC finds the Figure 8 counterexample.
+Limited by the machine (7.4 GB RAM, a few GB of free disk). At first the disk had under 100 MB free,
+because a GNOME indexer was looping and had filled `/var/log/syslog` with 18.5 GB, so only
+terms ≤ 2 / log length ≤ 1 could be checked exhaustively. After space was freed: the bug config at
+terms ≤ 4 produced the Figure 8 counterexample (breadth-first, 39 states); the correct spec passed
+exhaustively at (3, 1, 1) and (2, 2, 1); (4, 1, 1) and (3, 2, 1) ran 45 minutes each without a
+violation but did not finish. `scripts/tlc.sh` caps each file TLC writes (`TLC_FILE_LIMIT_KB`) so
+a large model fails instead of filling the disk. See `results/tlc.md`.
 
 **D15. Commit style.**
 Same as the qsim project: plain descriptive subjects without `phaseN:` prefixes, and private
@@ -140,6 +142,6 @@ planning files are kept out of git through `.git/info/exclude`.
 
 | Time available | Do this |
 |---|---|
-| 1 week | Read `docs/BUILD_GUIDE.md` steps 1–10 and re-implement `handleVote`, `maybeCommit` and `maybeAppend` from memory against the tests. Free the disk and finish the TLC bug run. |
+| 1 week | Read `docs/BUILD_GUIDE.md` steps 1–10 and re-implement `handleVote`, `maybeCommit` and `maybeAppend` from memory against the tests. Read the TLC Figure 8 trace (`results/tlc-figure8-trace.txt`) step by step against the paper's figure. |
 | 1 month | All of the above, plus: publish the blog post (`docs/WRITEUP.md`), push the repo once Q4 is cleared, and run the benchmarks on two or three real machines. |
 | 3 months | Add single-server membership change with its own bug-zoo entry (the 2015 single-server bug), lease reads with a clock-skew bug-zoo entry, and Porcupine visualisations of each bug-zoo failure in the docs. Then start the replay-debugger project on top of `sim/` and `check/`. |

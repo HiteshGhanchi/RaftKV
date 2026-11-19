@@ -180,12 +180,16 @@ max 733 ms. The election timeout is 100–200 ms.
 
 ### TLA+ ([`results/tlc.md`](results/tlc.md))
 
-- Exhaustive TLC check **completed with no errors** for 3 servers, terms ≤ 2, logs ≤ 1 entry,
-  1 message in flight: 183,800 distinct states.
+- **TLC finds Figure 8.** With the commit rule's term check switched off, exhaustive TLC reports a
+  LeaderCompleteness violation at 3 servers, terms ≤ 4, logs ≤ 1, 1 message in flight: a 39-state
+  trace found after 39,347,865 distinct states (10 min). Trace in
+  [`results/tlc-figure8-trace.txt`](results/tlc-figure8-trace.txt).
+- With the correct rule, exhaustive TLC **completed with no errors** at terms ≤ 3 / logs ≤ 1
+  (6,518,959 distinct states) and terms ≤ 2 / logs ≤ 2 (1,650,315).
+- At the bounds where the bug was found (terms ≤ 4), the correct spec showed no violation in
+  87,461,124 distinct states before a 45-minute limit. That run did not finish, so it is not a
+  complete check.
 - TLC simulation at terms ≤ 4, logs ≤ 3, 3 messages: no violation in 1,077,780 random behaviours.
-- Not done yet: TLC has **not** produced the Figure 8 counterexample with the bug switched on. The
-  shortest one in this spec is about 36 steps, and the larger models did not fit on the
-  development machine's disk. That is the next item to run.
 
 ---
 

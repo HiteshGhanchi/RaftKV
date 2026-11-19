@@ -34,9 +34,10 @@ counting, serve reads without confirming leadership, skip fsync, and so on).
 - **Real cluster** (3 nodes in one process on a laptop, real fsync, loopback HTTP): 5,454
   writes/s at p50 5.6 ms / p99 12.1 ms with 32 clients. Batching is worth 8.2x and fsync costs
   5.1x. Failover takes 163 ms at the median (`results/bench-*.json`).
-- **TLA+**: an exhaustive TLC check passes on a small model (183,800 states), and about a million
-  random behaviours pass at larger bounds. TLC has not yet produced the Figure 8 counterexample;
-  that model did not fit on the development machine (`results/tlc.md`).
+- **TLA+**: with the commit rule's term check removed, TLC finds the Figure 8 counterexample
+  (a 39-state trace, after 39 million distinct states). With the correct rule, exhaustive checks
+  pass at small bounds (up to 6.5 million distinct states), and the Figure 8 bounds show no
+  violation in 87 million states before a 45-minute limit (`results/tlc.md`).
 
 ## What I learned
 

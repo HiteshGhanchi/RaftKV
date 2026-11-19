@@ -80,7 +80,9 @@ Add `-viz out.html` to get Porcupine's visualisation of a non-linearizable histo
   The schedule needs about five elections in a specific order, and the leader's no-op usually rides
   in the same message as the old entry, so the buggy rule rarely acts alone. Seeds with one entry
   per message make it possible. The unit test
-  `TestFigure8LeaderDoesNotCommitOldTermByCounting` shows it directly.
+  `TestFigure8LeaderDoesNotCommitOldTermByCounting` shows it directly, and TLC finds the same bug
+  in the TLA+ spec (`CommitPrevTermBug = TRUE`): a shortest 39-state counterexample in
+  `results/tlc-figure8-trace.txt`.
 
 ### forget-vote
 - **Breaks**: votedFor is persistent state.

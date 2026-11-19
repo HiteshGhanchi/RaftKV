@@ -1,0 +1,862 @@
+# TLC counterexample: Figure 8 with CommitPrevTermBug = TRUE
+# Command: TLC_FILE_LIMIT_KB=1500000 ./scripts/tlc.sh bug 4 1 1   (3 servers, MaxTerm=4, MaxLogLen=1, MaxMsgs=1)
+# 271,922,292 states generated, 39,347,865 distinct, search depth 41, 9 min 59 s, 2026-11-19
+
+Error: Invariant LeaderCompleteness is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ elections = {}
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Follower" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> Nil @@ s2 :> Nil @@ s3 :> Nil)
+
+State 2: <Timeout(s1) line 64, col 5 to line 70, col 92 of module Raft>
+/\ elections = {}
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> Nil @@ s3 :> Nil)
+
+State 3: <RequestVote(s1,s2) line 73, col 5 to line 78, col 64 of module Raft>
+/\ elections = {}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 1,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s1,
+    mdst |-> s2 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> Nil @@ s3 :> Nil)
+
+State 4: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 1,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s1,
+    mdst |-> s2 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 1 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> Nil @@ s3 :> Nil)
+
+State 5: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {}
+/\ messages = {[mtype |-> "RVResp", mterm |-> 1, msrc |-> s2, mdst |-> s1, mgranted |-> TRUE]}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 1 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s1 @@ s3 :> Nil)
+
+State 6: <Timeout(s2) line 64, col 5 to line 70, col 92 of module Raft>
+/\ elections = {}
+/\ messages = {[mtype |-> "RVResp", mterm |-> 1, msrc |-> s2, mdst |-> s1, mgranted |-> TRUE]}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 7: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {}
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s2} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 8: <RequestVote(s2,s3) line 73, col 5 to line 78, col 64 of module Raft>
+/\ elections = {}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s2} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 9: <BecomeLeader(s1) line 82, col 5 to line 88, col 95 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s2} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 10: <ClientRequest(s1,v1) line 91, col 5 to line 95, col 74 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s2} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 11: <Restart(s1) line 55, col 5 to line 60, col 79 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Follower" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 1 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 12: <Timeout(s1) line 64, col 5 to line 70, col 92 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 2 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 13: <Timeout(s1) line 64, col 5 to line 70, col 92 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 0)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 14: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 2,
+    mlastTerm |-> 0,
+    mlastIndex |-> 0,
+    msrc |-> s2,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 15: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = {[mtype |-> "RVResp", mterm |-> 2, msrc |-> s3, mdst |-> s2, mgranted |-> TRUE]}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s2)
+
+State 16: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2, s3} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s2)
+
+State 17: <RequestVote(s1,s3) line 73, col 5 to line 78, col 64 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 3,
+    mlastTerm |-> 1,
+    mlastIndex |-> 1,
+    msrc |-> s1,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2, s3} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s2)
+
+State 18: <BecomeLeader(s2) line 82, col 5 to line 88, col 95 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 3,
+    mlastTerm |-> 1,
+    mlastIndex |-> 1,
+    msrc |-> s1,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = (s1 :> <<[term |-> 1, value |-> v1]>> @@ s2 :> <<>> @@ s3 :> <<>>)
+/\ state = (s1 :> "Candidate" @@ s2 :> "Leader" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2, s3} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s2)
+
+State 19: <ClientRequest(s2,v1) line 91, col 5 to line 95, col 74 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 3,
+    mlastTerm |-> 1,
+    mlastIndex |-> 1,
+    msrc |-> s1,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Leader" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2, s3} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s2)
+
+State 20: <Restart(s2) line 55, col 5 to line 60, col 79 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 3,
+    mlastTerm |-> 1,
+    mlastIndex |-> 1,
+    msrc |-> s1,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 2)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s2)
+
+State 21: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 3,
+    mlastTerm |-> 1,
+    mlastIndex |-> 1,
+    msrc |-> s1,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Follower" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 2 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 22: <Timeout(s2) line 64, col 5 to line 70, col 92 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 3,
+    mlastTerm |-> 1,
+    mlastIndex |-> 1,
+    msrc |-> s1,
+    mdst |-> s3 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 3 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> Nil)
+
+State 23: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = {[mtype |-> "RVResp", mterm |-> 3, msrc |-> s3, mdst |-> s1, mgranted |-> TRUE]}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 3 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 24: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 3 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 25: <Timeout(s2) line 64, col 5 to line 70, col 92 of module Raft>
+/\ elections = {[eterm |-> 1, eleader |-> s1], [eterm |-> 2, eleader |-> s2]}
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Candidate" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 26: <BecomeLeader(s1) line 82, col 5 to line 88, col 95 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 27: <AppendEntries(s1,s3) line 113, col 5 to line 123, col 64 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "AEReq",
+    mterm |-> 3,
+    msrc |-> s1,
+    mdst |-> s3,
+    mprevIndex |-> 1,
+    mprevTerm |-> 1,
+    mentries |-> <<>>,
+    mcommit |-> 0 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 28: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "AEResp",
+    mterm |-> 3,
+    msrc |-> s3,
+    mdst |-> s1,
+    msuccess |-> FALSE,
+    mmatch |-> 0 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 29: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 30: <AppendEntries(s1,s3) line 113, col 5 to line 123, col 64 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "AEReq",
+    mterm |-> 3,
+    msrc |-> s1,
+    mdst |-> s3,
+    mprevIndex |-> 0,
+    mprevTerm |-> 0,
+    mentries |-> <<[term |-> 1, value |-> v1]>>,
+    mcommit |-> 0 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 31: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "AEReq",
+    mterm |-> 3,
+    msrc |-> s1,
+    mdst |-> s3,
+    mprevIndex |-> 0,
+    mprevTerm |-> 0,
+    mentries |-> <<[term |-> 1, value |-> v1]>>,
+    mcommit |-> 0 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 32: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "AEResp",
+    mterm |-> 3,
+    msrc |-> s3,
+    mdst |-> s1,
+    msuccess |-> TRUE,
+    mmatch |-> 1 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 1) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 33: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 34: <RequestVote(s2,s1) line 73, col 5 to line 78, col 64 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 4,
+    mlastTerm |-> 2,
+    mlastIndex |-> 1,
+    msrc |-> s2,
+    mdst |-> s1 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 35: <AdvanceCommitIndex(s1) line 99, col 5 to line 108, col 112 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 4,
+    mlastTerm |-> 2,
+    mlastIndex |-> 1,
+    msrc |-> s2,
+    mdst |-> s1 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Leader" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 3 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {[idx |-> 1, entry |-> [term |-> 1, value |-> v1], cterm |-> 3]}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s1 @@ s2 :> s2 @@ s3 :> s1)
+
+State 36: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = { [ mtype |-> "RVReq",
+    mterm |-> 4,
+    mlastTerm |-> 2,
+    mlastIndex |-> 1,
+    msrc |-> s2,
+    mdst |-> s1 ] }
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Follower" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 4 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {[idx |-> 1, entry |-> [term |-> 1, value |-> v1], cterm |-> 3]}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> Nil @@ s2 :> s2 @@ s3 :> s1)
+
+State 37: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = {[mtype |-> "RVResp", mterm |-> 4, msrc |-> s1, mdst |-> s2, mgranted |-> TRUE]}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Follower" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 4 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {[idx |-> 1, entry |-> [term |-> 1, value |-> v1], cterm |-> 3]}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s2 @@ s2 :> s2 @@ s3 :> s1)
+
+State 38: <Next line 256, col 8 to line 256, col 37 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1] }
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Follower" @@ s2 :> "Candidate" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 4 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {[idx |-> 1, entry |-> [term |-> 1, value |-> v1], cterm |-> 3]}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s1, s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s2 @@ s2 :> s2 @@ s3 :> s1)
+
+State 39: <BecomeLeader(s2) line 82, col 5 to line 88, col 95 of module Raft>
+/\ elections = { [eterm |-> 1, eleader |-> s1],
+  [eterm |-> 2, eleader |-> s2],
+  [eterm |-> 3, eleader |-> s1],
+  [eterm |-> 4, eleader |-> s2] }
+/\ messages = {}
+/\ matchIndex = ( s1 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 1) @@
+  s2 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) @@
+  s3 :> (s1 :> 0 @@ s2 :> 0 @@ s3 :> 0) )
+/\ log = ( s1 :> <<[term |-> 1, value |-> v1]>> @@
+  s2 :> <<[term |-> 2, value |-> v1]>> @@
+  s3 :> <<[term |-> 1, value |-> v1]>> )
+/\ state = (s1 :> "Follower" @@ s2 :> "Leader" @@ s3 :> "Follower")
+/\ commitIndex = (s1 :> 1 @@ s2 :> 0 @@ s3 :> 0)
+/\ currentTerm = (s1 :> 4 @@ s2 :> 4 @@ s3 :> 3)
+/\ committed = {[idx |-> 1, entry |-> [term |-> 1, value |-> v1], cterm |-> 3]}
+/\ nextIndex = ( s1 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s2 :> (s1 :> 2 @@ s2 :> 2 @@ s3 :> 2) @@
+  s3 :> (s1 :> 1 @@ s2 :> 1 @@ s3 :> 1) )
+/\ votesGranted = (s1 :> {s1, s3} @@ s2 :> {s1, s2} @@ s3 :> {})
+/\ votedFor = (s1 :> s2 @@ s2 :> s2 @@ s3 :> s1)
+
+271922292 states generated, 39347865 distinct states found, 6227574 states left on queue.
