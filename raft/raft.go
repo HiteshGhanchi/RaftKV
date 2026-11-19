@@ -23,6 +23,9 @@ type Config struct {
 	HeartbeatTick int
 	// MaxEntriesPerMsg caps how many entries one MsgApp carries.
 	MaxEntriesPerMsg int
+	// CheckQuorum makes a leader step down when it has not heard from a
+	// majority for an election timeout (thesis §6.2). Liveness only.
+	CheckQuorum bool
 
 	// Rand drives the randomised election timeout. Required: it is how the
 	// simulator keeps elections deterministic.
@@ -209,7 +212,9 @@ func (n *Node) Tick() {
 		}
 		if n.electionElapsed >= n.cfg.ElectionTick {
 			n.electionElapsed = 0
-			n.checkQuorum()
+			if n.cfg.CheckQuorum {
+				n.checkQuorum()
+			}
 		}
 		return
 	}
@@ -218,8 +223,20 @@ func (n *Node) Tick() {
 	n.electionElapsed++
 	if n.electionElapsed >= n.electionTimeout {
 		n.campaign()
+		return
+	}
+	// Figure 2 assumes RPCs are retried if no response arrives: a candidate
+	// asks again every few ticks for the votes it has not heard back about.
+	if n.state == Candidate && n.electionElapsed%voteRetryTicks == 0 {
+		for _, p := range n.peers {
+			if _, answered := n.votes[p]; !answered {
+				n.send(Message{Type: MsgVote, To: p, LogTerm: n.log.lastTerm(), Index: n.log.lastIndex()})
+			}
+		}
 	}
 }
+
+const voteRetryTicks = 3
 
 // checkQuorum makes a leader step down if it has not heard from a majority
 // for an election timeout (thesis §6.2). This is for liveness: clients find
@@ -597,10 +614,17 @@ func (n *Node) Ready() Ready {
 		rd.CommittedEntries = n.log.nextCommitted(n.mut.Has(mutation.ApplyBeforeCommit))
 	}
 	rd.MustSync = len(rd.Entries) > 0 || hs.Term != n.prevHardState.Term || hs.Vote != n.prevHardState.Vote
-	if n.mut.Has(mutation.ForgetVote) {
-		rd.HardState.Vote = None // mutation: votedFor never reaches the disk
-	}
+	rd.HardState = n.HardState()
 	return rd
+}
+
+// HardState is the state to write to disk now.
+func (n *Node) HardState() HardState {
+	hs := n.hardState()
+	if n.mut.Has(mutation.ForgetVote) {
+		hs.Vote = None // mutation: votedFor never reaches the disk
+	}
+	return hs
 }
 
 // Advance tells the node the caller finished handling rd.

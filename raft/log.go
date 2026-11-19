@@ -171,10 +171,11 @@ func (l *raftLog) restore(s *Snapshot) {
 		l.entries = append([]Entry(nil), l.entries[s.Index-l.snapIndex:]...)
 	} else {
 		l.entries = nil
-		l.stable = s.Index
 	}
 	l.snapIndex, l.snapTerm = s.Index, s.Term
-	l.stable = max(l.stable, s.Index)
+	// The caller rewrites its log file when it stores the snapshot, so any
+	// retained entries are handed out again as unstable.
+	l.stable = s.Index
 	l.committed = max(l.committed, s.Index)
 	l.snapshot = s
 	l.pendingSnapshot = s

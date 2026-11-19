@@ -23,7 +23,7 @@ type testNet struct {
 }
 
 func cfgFor(id NodeID, peers []NodeID) Config {
-	return Config{ID: id, Peers: peers, ElectionTick: 10, HeartbeatTick: 1, Rand: sim.NewRand(id)}
+	return Config{ID: id, Peers: peers, ElectionTick: 10, HeartbeatTick: 1, CheckQuorum: true, Rand: sim.NewRand(id)}
 }
 
 func newTestNet(t *testing.T, n int, edit func(*Config)) *testNet {
@@ -148,6 +148,35 @@ func TestCandidateWithMajorityBecomesLeader(t *testing.T) {
 	}
 	if l.log.committed != 1 {
 		t.Fatalf("no-op not committed by the majority: commit=%d", l.log.committed)
+	}
+}
+
+// Figure 2 assumes lost RPCs are retried: a candidate re-asks silent peers.
+func TestCandidateRetriesVoteRequests(t *testing.T) {
+	n := New(cfgFor(1, []NodeID{1, 2, 3}))
+	n.Campaign()
+	n.msgs = nil
+	n.Step(Message{Type: MsgVoteResp, From: 2, To: 1, Term: 1, Reject: true})
+	for range voteRetryTicks {
+		n.Tick()
+	}
+	if len(n.msgs) != 1 || n.msgs[0].To != 3 || n.msgs[0].Type != MsgVote {
+		t.Fatalf("retry sent %v, want one MsgVote to 3", n.msgs)
+	}
+}
+
+// CheckQuorum (thesis §6.2): an isolated leader steps down.
+func TestCheckQuorumDeposesIsolatedLeader(t *testing.T) {
+	tn := newTestNet(t, 3, nil)
+	tn.nodes[1].Campaign()
+	tn.drain()
+	tn.isolate(1)
+	for range 3 * tn.nodes[1].cfg.ElectionTick {
+		tn.nodes[1].Tick()
+		tn.drain()
+	}
+	if tn.nodes[1].state == Leader {
+		t.Fatal("isolated leader kept its role")
 	}
 }
 
