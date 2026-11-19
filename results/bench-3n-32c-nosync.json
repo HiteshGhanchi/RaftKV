@@ -1,0 +1,23 @@
+{
+  "Machine": {
+    "cpu": "12th Gen Intel(R) Core(TM) i5-12500H",
+    "cpus": "16",
+    "dataDir": "data/bench/20261119-202727-3n-32c-nosync",
+    "filesystem": "/dev/nvme0n1p5 (ext4)",
+    "go": "go1.22.2",
+    "kernel": "6.5.0-44-generic",
+    "os": "linux/amd64"
+  },
+  "Nodes": 3,
+  "Clients": 32,
+  "Payload": 100,
+  "Duration": "10s",
+  "NoSync": true,
+  "MaxBatch": 256,
+  "Ops": 279983,
+  "Errors": 0,
+  "OpsPerSec": 27998.146617753384,
+  "P50ms": 0.977,
+  "P99ms": 2.6,
+  "MaxMs": 27.541
+}
