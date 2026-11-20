@@ -36,19 +36,19 @@ The same bug is also caught on the Go side by the unit test
 | Exhaustive (`./scripts/tlc.sh`) | (2, 1, 1) | **No error has been found.** 1,262,527 generated, 183,800 distinct, depth 45, 5 s | 2026-11-19 |
 | Exhaustive (`check 2 2 1`) | (2, 2, 1) | **No error has been found.** 1,650,315 distinct, depth 57, 30 s | 2026-11-19 |
 | Exhaustive (`check 3 1 1`) | (3, 1, 1) | **No error has been found.** 6,518,959 distinct, depth 64, 1 min 41 s | 2026-11-19 |
-| Exhaustive (`check 4 1 1`) | (4, 1, 1) | **Not finished** (45 min limit). No violation in the 636,786,345 states generated / 87,461,124 distinct explored, up to depth 52; 4.6 million states still queued | 2026-11-19 |
+| Exhaustive (`check 4 1 1`) | (4, 1, 1) | **No error has been found.** 857,171,255 generated, 114,534,684 distinct, 0 left on queue, depth 77, 55 min 06 s. TLC's estimated chance that a fingerprint collision hid a state: 0.0046 (optimistic) / 0.006 (from actual fingerprints) | 2026-11-20 |
 | Exhaustive (`check 3 2 1`) | (3, 2, 1) | **Not finished** (45 min limit). No violation in the 484,625,011 states generated / 71,495,811 distinct explored, up to depth 54; 4.0 million states still queued | 2026-11-20 |
 | Simulation (`simulate 4 3 3 240`) | (4, 3, 3) | No violation in at least 81,274,707 states over 1,077,780 random behaviours (240 s) | 2026-11-19 |
 
-Numbers for the unfinished runs come from TLC's last progress line before the time limit.
+Numbers for the unfinished run come from TLC's last progress line before the time limit.
 
 ## What this does and does not show
 
-- TLC finds the Figure 8 bug when the commit rule ignores the term check, and the same bounds with
-  the correct rule show no violation for at least 87 million distinct states, more than twice the
-  number that was enough to find the bug (39 million, depth 41). The (4, 1, 1) run did not
-  finish, so it is strong evidence, not a complete check.
-- The correct spec passes exhaustively at (2, 1, 1), (2, 2, 1) and (3, 1, 1). This is evidence for
+- TLC finds the Figure 8 bug when the commit rule ignores the term check, and at the same bounds
+  the correct rule passes a complete exhaustive check (114,534,684 distinct states). Like every
+  TLC run, it relies on state fingerprints, so a small collision chance remains (0.6% by TLC's own
+  estimate for this run).
+- The correct spec passes exhaustively at (2, 1, 1), (2, 2, 1), (3, 1, 1) and (4, 1, 1). This is evidence for
   3 servers within these bounds, not a proof for all cluster sizes or log lengths.
 - TLC checks the spec, not the Go code. The link is the shared property names (see the mapping in
   the README).

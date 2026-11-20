@@ -184,11 +184,10 @@ max 733 ms. The election timeout is 100–200 ms.
   LeaderCompleteness violation at 3 servers, terms ≤ 4, logs ≤ 1, 1 message in flight: a 39-state
   trace found after 39,347,865 distinct states (10 min). Trace in
   [`results/tlc-figure8-trace.txt`](results/tlc-figure8-trace.txt).
-- With the correct rule, exhaustive TLC **completed with no errors** at terms ≤ 3 / logs ≤ 1
-  (6,518,959 distinct states) and terms ≤ 2 / logs ≤ 2 (1,650,315).
-- At the bounds where the bug was found (terms ≤ 4), the correct spec showed no violation in
-  87,461,124 distinct states before a 45-minute limit. That run did not finish, so it is not a
-  complete check.
+- With the correct rule, exhaustive TLC **completed with no errors** at the same bounds
+  (terms ≤ 4): 114,534,684 distinct states, depth 77, 55 min. Also clean at terms ≤ 2 / logs ≤ 2
+  (1,650,315 distinct states). TLC estimates a 0.6% chance that a fingerprint collision skipped a
+  state.
 - TLC simulation at terms ≤ 4, logs ≤ 3, 3 messages: no violation in 1,077,780 random behaviours.
 
 ---

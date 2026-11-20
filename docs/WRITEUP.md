@@ -36,8 +36,8 @@ counting, serve reads without confirming leadership, skip fsync, and so on).
   5.1x. Failover takes 163 ms at the median (`results/bench-*.json`).
 - **TLA+**: with the commit rule's term check removed, TLC finds the Figure 8 counterexample
   (a 39-state trace, after 39 million distinct states). With the correct rule, exhaustive checks
-  pass at small bounds (up to 6.5 million distinct states), and the Figure 8 bounds show no
-  violation in 87 million states before a 45-minute limit (`results/tlc.md`).
+  pass at small bounds, including the Figure 8 bounds themselves (114.5 million distinct states,
+  55 minutes on a laptop; `results/tlc.md`).
 
 ## What I learned
 

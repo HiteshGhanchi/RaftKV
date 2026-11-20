@@ -128,8 +128,8 @@ Limited by the machine (7.4 GB RAM, a few GB of free disk). At first the disk ha
 because a GNOME indexer was looping and had filled `/var/log/syslog` with 18.5 GB, so only
 terms ≤ 2 / log length ≤ 1 could be checked exhaustively. After space was freed: the bug config at
 terms ≤ 4 produced the Figure 8 counterexample (breadth-first, 39 states); the correct spec passed
-exhaustively at (3, 1, 1) and (2, 2, 1); (4, 1, 1) and (3, 2, 1) ran 45 minutes each without a
-violation but did not finish. `scripts/tlc.sh` caps each file TLC writes (`TLC_FILE_LIMIT_KB`) so
+exhaustively at (3, 1, 1), (2, 2, 1) and (4, 1, 1) (the last: 114.5 million distinct states, 55
+min); (3, 2, 1) ran 45 minutes without a violation but did not finish. `scripts/tlc.sh` caps each file TLC writes (`TLC_FILE_LIMIT_KB`) so
 a large model fails instead of filling the disk. See `results/tlc.md`.
 
 **D15. Commit style.**
