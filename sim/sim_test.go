@@ -86,7 +86,8 @@ func TestClock_TimersFireInDeadlineOrder(t *testing.T) {
 	tick = func() { n++; w.After(time.Millisecond, "tick", tick) }
 	w.After(0, "tick", tick)
 	w.RunFor(time.Hour)
-	if elapsed := time.Since(start); elapsed > 5*time.Second {
+	// The speed bound only holds without the race detector's instrumentation.
+	if elapsed := time.Since(start); !raceEnabled && elapsed > 5*time.Second {
 		t.Fatalf("one virtual hour took %v of wall time", elapsed)
 	}
 	if n < 3_600_000 {
