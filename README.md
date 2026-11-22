@@ -1,4 +1,4 @@
-# raftlab
+# RaftKV
 
 A replicated, linearizable key-value store in Go, built on a from-scratch implementation of the
 Raft consensus protocol, plus a **deterministic simulation harness** that tries hard to break it.
