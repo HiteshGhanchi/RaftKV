@@ -10,8 +10,8 @@ deliberately injectable Raft bugs shows the harness really catches mistakes, and
 spec states the same properties formally.
 
 ```
-8/8 injected bugs caught over 3000 seeds each (median 9.5 seeds to first detection)
-10,000 correct-code chaos runs, 1,593,004 client operations, all linearizable, 0 failures
+8/8 injected bugs caught over 3000 seeds each (median 15.5 seeds to first detection)
+10,000 correct-code chaos runs, 1,592,965 client operations, all linearizable, 0 failures
 3 nodes on one laptop, real fsync, 32 clients: 5,454 writes/s, p50 5.6 ms, p99 12.1 ms
 ```
 
@@ -91,7 +91,7 @@ make chaos SEEDS=1000         # 1000 seeds of the fault-injection harness, in pa
 ```
 
 ```bash
-./bin/raftlab-chaos -seed 18 -mutation stale-read -v   # replay one failing seed with its full trace
+./bin/raftlab-chaos -seed 35 -mutation stale-read -v   # replay one failing seed with its full trace
 ```
 
 ```bash
@@ -141,16 +141,16 @@ Mapping from paper rules to code and from spec properties to Go assertions:
 
 | Mutation | Rule it breaks | Caught in | First failing seed | First failure |
 |---|---|---|---|---|
-| `skip-up-to-date-check` | RequestVote: candidate log must be up-to-date (§5.4.1) | 2600/3000 | 1 | LeaderCompleteness |
-| `apply-before-commit` | Apply only up to commitIndex | 2344/3000 | 1 | StateMachineSafety |
-| `no-dedup` | Retries must take effect once (thesis §6.3) | 2394/3000 | 1 | history not linearizable |
-| `skip-fsync` | Persist before responding | 883/3000 | 1 | LeaderCompleteness |
-| `stale-read` | Leader must confirm leadership before a read (thesis §6.4) | 52/3000 | 18 | history not linearizable |
-| `accept-stale-term` | AppendEntries rule 1: reject older terms | 47/3000 | 27 | StateMachineSafety |
-| `commit-prev-term` | Leaders rule 4: commit only current-term entries by counting (Figure 8) | 5/3000 | 262 | LeaderCompleteness |
-| `forget-vote` | votedFor is persistent state | 2/3000 | 1915 | ElectionSafety |
+| `skip-up-to-date-check` | RequestVote: candidate log must be up-to-date (§5.4.1) | 2601/3000 | 1 | LeaderCompleteness |
+| `no-dedup` | Retries must take effect once (thesis §6.3) | 2413/3000 | 1 | history not linearizable |
+| `apply-before-commit` | Apply only up to commitIndex | 2361/3000 | 1 | StateMachineSafety |
+| `skip-fsync` | Persist before responding | 857/3000 | 3 | LeaderCompleteness |
+| `stale-read` | Leader must confirm leadership before a read (thesis §6.4) | 54/3000 | 35 | history not linearizable |
+| `accept-stale-term` | AppendEntries rule 1: reject older terms | 39/3000 | 28 | StateMachineSafety |
+| `commit-prev-term` | Leaders rule 4: commit only current-term entries by counting (Figure 8) | 6/3000 | 151 | LeaderCompleteness |
+| `forget-vote` | votedFor is persistent state | 3/3000 | 179 | ElectionSafety |
 
-**8/8 caught; median seeds to first detection = 9.5.** The last two are rare on purpose: they need
+**8/8 caught; median seeds to first detection = 15.5.** The last two are rare on purpose: they need
 a specific schedule (Figure 8 needs about five elections in a particular order, and a double vote
 needs a crash between granting a vote and a second candidate asking). The detection rate is the
 honest measure, and it says that a few hundred seeds are not enough for these bugs.
@@ -158,7 +158,7 @@ honest measure, and it says that a few hundred seeds are not enough for these bu
 ### Chaos sweep (`./bin/raftlab-chaos -seeds 10000`, [`results/chaos-10000.json`](results/chaos-10000.json))
 
 10,000 runs (4 s of faults plus 2 s of recovery each, virtual time), 0 failures, 0 inconclusive,
-1,593,004 client operations checked. It took 53 s of wall time on 16 threads.
+1,592,965 client operations checked. It took 22 s of wall time on 16 threads.
 
 ### Benchmarks (`./scripts/bench.sh`, `results/bench-*.json`)
 
