@@ -1,0 +1,77 @@
+# raftlab-debug session on harness/testdata/schedules/skip-fsync.json
+
+raftlab-debug: seed 3, 3 nodes, mutations=skip-fsync, 3 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  2.138298208s partition [2 3] | [1] for 616.79772ms
+  2.345216801s crash n3, restart after 252.180796ms
+  2.530852268s partition [3] | [2 1] for 979.744661ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+breakpoint: violation
+  #4128 2.790702964s deliver n1 peer=n3 msg=2414 MsgVoteResp t5 i0 n0 c0 rfalse
+  #4128 2.790702964s send n1 peer=n2 msg=2415 delay=4890517 MsgApp t5 i95 n1 c94 rfalse
+  #4128 2.790702964s send n1 peer=n3 msg=2416 delay=12761935 MsgApp t5 i95 n1 c94 rfalse
+  #4128 2.790702964s role n1 term=5 vote=1 lead=1 commit=94 last=96 Leader
+  #4128 2.790702964s violation LeaderCompleteness: new leader 1 (term 5) lacks applied entry 96 (term 1)
+step 4128, t=2.790702964s, VIOLATION LeaderCompleteness: new leader 1 (term 5) lacks applied entry 96 (term 1)
+(debug) nodes
+n1 Leader    term=5 vote=1 lead=1 commit=94 applied=94 log=[snap 80 .. 96] lastTerm=5
+n2 Follower  term=5 vote=0 lead=0 commit=105 applied=105 log=[snap 80 .. 107] lastTerm=1
+n3 Follower  term=5 vote=1 lead=0 commit=95 applied=95 log=[snap 80 .. 95] lastTerm=1
+(debug) back 20
+step 4108, t=2.769394666s, running
+(debug) events 12
+  #4100 2.759220864s tick n2
+  #4101 2.760296779s tick n1
+  #4102 2.761394666s client-retry client=1
+  #4103 2.763264865s tick n3
+  #4103 2.763264865s send n3 peer=n1 msg=2410 delay=12902169 MsgVote t2 i95 n0 c0 rfalse
+  #4103 2.763264865s send n3 peer=n2 msg=2411 delay=2832104 MsgVote t2 i95 n0 c0 rfalse
+  #4104 2.765394666s client-request n2 client=1 put(k2, "2.51;")
+  #4105 2.766096969s deliver n2 peer=n3 msg=2411 MsgVote t2 i95 n0 c0 rfalse
+  #4105 2.766096969s send n2 peer=n3 msg=2412 delay=6332765 MsgVoteResp t5 i0 n0 c0 rtrue
+  #4106 2.768569354s client-retry client=0
+  #4107 2.769220864s tick n2
+  #4108 2.769394666s client-reply n2 client=1
+(debug) inflight
+  #2412 n2 -> n3 arrives 2.772429734s: MsgVoteResp t5 i0 n0 c0 rtrue
+  #2410 n3 -> n1 arrives 2.776167034s: MsgVote t2 i95 n0 c0 rfalse
+(debug) run-to violation
+hit: violation
+  #4128 2.790702964s deliver n1 peer=n3 msg=2414 MsgVoteResp t5 i0 n0 c0 rfalse
+  #4128 2.790702964s send n1 peer=n2 msg=2415 delay=4890517 MsgApp t5 i95 n1 c94 rfalse
+  #4128 2.790702964s send n1 peer=n3 msg=2416 delay=12761935 MsgApp t5 i95 n1 c94 rfalse
+  #4128 2.790702964s role n1 term=5 vote=1 lead=1 commit=94 last=96 Leader
+  #4128 2.790702964s violation LeaderCompleteness: new leader 1 (term 5) lacks applied entry 96 (term 1)
+step 4128, t=2.790702964s, VIOLATION LeaderCompleteness: new leader 1 (term 5) lacks applied entry 96 (term 1)
+(debug) finish
+seed=3 FAIL mutations=skip-fsync violation=LeaderCompleteness: new leader 1 (term 5) lacks applied entry 96 (term 1) history=not checked (run stopped at violation) ops=131/133 unknown=2 leaders=2 crashes=1 partitions=2 pauses=0 snapshots=3 trace=eee6a5deba7ba5b8
+
+# first divergence: same options with correct code (A) vs with skip-fsync (B)
+
+first difference at event 6912 (step 3809); 11790 and 7381 events in total
+common prefix (last events):
+    #3806 2.342923607s deliver n3 peer=n2 msg=2374 MsgApp t1 i104 n1 c104 rfalse
+    #3806 2.342923607s send n3 peer=n2 msg=2375 delay=8471059 MsgAppResp t1 i105 n0 c0 rfalse
+    #3807 2.343264865s tick n3
+    #3808 2.344087024s deliver n3 peer=n2 msg=2373 MsgHeartbeat t1 i0 n0 c104 rfalse
+    #3808 2.344087024s send n3 peer=n2 msg=2376 delay=1482330 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+    #3809 2.345216801s fault
+A (mutations=none):
+  > #3809 2.345216801s crash n3 wal torn 15/24 unsynced bytes kept; 
+  > #3810 2.345433617s deliver n2 peer=n3 msg=2369 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  > #3810 2.345433617s send n2 peer=n3 msg=2377 delay=4716379 MsgApp t1 i104 n1 c104 rfalse
+  > #3811 2.345569354s deliver n2 peer=n3 msg=2376 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  > #3811 2.345569354s send n2 peer=n3 msg=2378 delay=8122283 MsgApp t1 i104 n1 c104 rfalse
+  > #3812 2.345688457s deliver n3 peer=n2 msg=2371 MsgHeartbeat t1 i0 n0 c104 rfalse
+  result: seed=3 ok mutations=none violation=none history=linearizable ops=212/212 unknown=0 leaders=2 crashes=1 partitions=2 pauses=0 snapshots=8 trace=77b07e022415f1cd
+B (mutations=skip-fsync):
+  > #3809 2.345216801s crash n3 wal torn 1616/2653 unsynced bytes kept; 
+  > #3810 2.345433617s deliver n2 peer=n3 msg=2369 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  > #3810 2.345433617s send n2 peer=n3 msg=2377 delay=4716379 MsgApp t1 i104 n1 c104 rfalse
+  > #3811 2.345569354s deliver n2 peer=n3 msg=2376 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  > #3811 2.345569354s send n2 peer=n3 msg=2378 delay=8122283 MsgApp t1 i104 n1 c104 rfalse
+  > #3812 2.345688457s deliver n3 peer=n2 msg=2371 MsgHeartbeat t1 i0 n0 c104 rfalse
+  result: seed=3 FAIL mutations=skip-fsync violation=LeaderCompleteness: new leader 1 (term 5) lacks applied entry 96 (term 1) history=not checked (run stopped at violation) ops=131/133 unknown=2 leaders=2 crashes=1 partitions=2 pauses=0 snapshots=3 trace=eee6a5deba7ba5b8

@@ -1,0 +1,88 @@
+# raftlab-debug session on harness/testdata/schedules/apply-before-commit.json
+
+raftlab-debug: seed 1, 5 nodes, mutations=apply-before-commit, 3 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  713.863185ms slow network for 166.105863ms
+  2.258500002s block n5->n3 for 578.226488ms
+  2.40938327s pause n5 for 392.666607ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+breakpoint: violation
+  #17362 2.569439394s deliver n4 peer=n1 msg=13466 MsgVoteResp t3 i0 n0 c0 rfalse
+  #17362 2.569439394s drop n4 peer=n1 lost: MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s send n4 peer=n2 msg=13470 delay=14481463 MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s send n4 peer=n3 msg=13471 delay=13638868 MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s send n4 peer=n5 msg=13472 delay=12207042 MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s apply n4 index=397 term=3
+  #17362 2.569439394s violation StateMachineSafety: node 4 applied index 397 term 3, another node applied term 1 there
+  #17362 2.569439394s role n4 term=3 vote=4 lead=4 commit=395 last=397 Leader
+step 17362, t=2.569439394s, VIOLATION StateMachineSafety: node 4 applied index 397 term 3, another node applied term 1 there
+(debug) nodes
+n1 Follower  term=3 vote=4 lead=0 commit=395 applied=396 log=[snap 360 .. 396] lastTerm=1
+n2 Follower  term=3 vote=0 lead=0 commit=395 applied=397 log=[snap 360 .. 397] lastTerm=1
+n3 Follower  term=3 vote=4 lead=0 commit=360 applied=360 log=[snap 360 .. 360] lastTerm=0
+n4 Leader    term=3 vote=4 lead=4 commit=395 applied=397 log=[snap 360 .. 397] lastTerm=3
+n5 Follower  term=3 vote=0 lead=0 commit=395 applied=398 log=[snap 360 .. 398] lastTerm=1
+(debug) back 20
+step 17342, t=2.559825046s, running
+(debug) events 12
+  #17336 2.557346049s deliver n1 peer=n4 msg=13461 MsgVote t3 i396 n0 c0 rfalse
+  #17336 2.557346049s send n1 peer=n4 msg=13466 delay=12093345 MsgVoteResp t3 i0 n0 c0 rfalse
+  #17336 2.557346049s role n1 term=3 vote=4 lead=0 commit=395 last=396 Follower
+  #17337 2.557362236s client-request n2 client=2 append(k0, "3.117;")
+  #17338 2.557397781s client-retry client=0
+  #17339 2.557580464s deliver n3 peer=n4 msg=13463 MsgVote t3 i396 n0 c0 rfalse
+  #17339 2.557580464s send n3 peer=n4 msg=13467 delay=6386837 MsgVoteResp t3 i0 n0 c0 rfalse
+  #17339 2.557580464s dup n3 peer=n4 msg=13468 delay=6347099 MsgVoteResp t3 i0 n0 c0 rfalse
+  #17339 2.557580464s role n3 term=3 vote=4 lead=0 commit=360 last=360 Follower
+  #17340 2.558523141s tick n5
+  #17341 2.559397781s client-request n3 client=0 get(k2)
+  #17342 2.559825046s tick n3
+(debug) inflight
+  #13465 n5 -> n4 arrives 2.561604374s: MsgVoteResp t3 i0 n0 c0 rtrue
+  #13468 n3 -> n4 arrives 2.563927563s: MsgVoteResp t3 i0 n0 c0 rfalse
+  #13467 n3 -> n4 arrives 2.563967301s: MsgVoteResp t3 i0 n0 c0 rfalse
+  #13462 n4 -> n2 arrives 2.56544283s: MsgVote t3 i396 n0 c0 rfalse
+  #13466 n1 -> n4 arrives 2.569439394s: MsgVoteResp t3 i0 n0 c0 rfalse
+(debug) run-to violation
+hit: violation
+  #17362 2.569439394s deliver n4 peer=n1 msg=13466 MsgVoteResp t3 i0 n0 c0 rfalse
+  #17362 2.569439394s drop n4 peer=n1 lost: MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s send n4 peer=n2 msg=13470 delay=14481463 MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s send n4 peer=n3 msg=13471 delay=13638868 MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s send n4 peer=n5 msg=13472 delay=12207042 MsgApp t3 i396 n1 c395 rfalse
+  #17362 2.569439394s apply n4 index=397 term=3
+  #17362 2.569439394s violation StateMachineSafety: node 4 applied index 397 term 3, another node applied term 1 there
+  #17362 2.569439394s role n4 term=3 vote=4 lead=4 commit=395 last=397 Leader
+step 17362, t=2.569439394s, VIOLATION StateMachineSafety: node 4 applied index 397 term 3, another node applied term 1 there
+(debug) finish
+seed=1 FAIL mutations=apply-before-commit violation=StateMachineSafety: node 4 applied index 397 term 3, another node applied term 1 there history=not checked (run stopped at violation) ops=565/569 unknown=4 leaders=2 crashes=0 partitions=0 pauses=1 snapshots=22 trace=d26dcdb4fab2b517
+
+# first divergence: same options with correct code (A) vs with apply-before-commit (B)
+
+first difference at event 175 (step 151); 25565 and 34068 events in total
+common prefix (last events):
+    #150 104.868926ms tick n1
+    #151 104.888456ms deliver n5 peer=n2 msg=6 MsgVoteResp t1 i0 n0 c0 rfalse
+    #151 104.888456ms send n5 peer=n1 msg=8 delay=11476702 MsgApp t1 i0 n1 c0 rfalse
+    #151 104.888456ms send n5 peer=n2 msg=9 delay=9885239 MsgApp t1 i0 n1 c0 rfalse
+    #151 104.888456ms send n5 peer=n3 msg=10 delay=5921770 MsgApp t1 i0 n1 c0 rfalse
+    #151 104.888456ms send n5 peer=n4 msg=11 delay=10521468 MsgApp t1 i0 n1 c0 rfalse
+A (mutations=none):
+  > #151 104.888456ms role n5 term=1 vote=5 lead=5 commit=0 last=1 Leader
+  > #152 105.115742ms deliver n5 peer=n1 msg=7 MsgVoteResp t1 i0 n0 c0 rfalse
+  > #153 105.628287ms tick n5
+  > #153 105.628287ms send n5 peer=n1 msg=12 delay=12602357 MsgHeartbeat t1 i0 n0 c0 rfalse
+  > #153 105.628287ms send n5 peer=n2 msg=13 delay=12780340 MsgHeartbeat t1 i0 n0 c0 rfalse
+  > #153 105.628287ms send n5 peer=n3 msg=14 delay=2943437 MsgHeartbeat t1 i0 n0 c0 rfalse
+  result: seed=1 ok mutations=none violation=none history=linearizable ops=323/323 unknown=0 leaders=2 crashes=0 partitions=0 pauses=1 snapshots=23 trace=23ca78046afe178c
+B (mutations=apply-before-commit):
+  > #151 104.888456ms apply n5 index=1 term=1
+  > #151 104.888456ms role n5 term=1 vote=5 lead=5 commit=0 last=1 Leader
+  > #152 105.115742ms deliver n5 peer=n1 msg=7 MsgVoteResp t1 i0 n0 c0 rfalse
+  > #153 105.628287ms tick n5
+  > #153 105.628287ms send n5 peer=n1 msg=12 delay=12602357 MsgHeartbeat t1 i0 n0 c0 rfalse
+  > #153 105.628287ms send n5 peer=n2 msg=13 delay=12780340 MsgHeartbeat t1 i0 n0 c0 rfalse
+  result: seed=1 FAIL mutations=apply-before-commit violation=StateMachineSafety: node 4 applied index 397 term 3, another node applied term 1 there history=not checked (run stopped at violation) ops=565/569 unknown=4 leaders=2 crashes=0 partitions=0 pauses=1 snapshots=22 trace=d26dcdb4fab2b517

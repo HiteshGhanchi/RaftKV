@@ -1,0 +1,65 @@
+# raftlab-debug session on harness/testdata/schedules/stale-read.json
+
+raftlab-debug: seed 35, 3 nodes, mutations=stale-read, 1 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  788.441012ms partition [3] | [2 1] for 332.316248ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+no breakpoint hit before the run ended
+step 2185, t=1.35s, finished
+(debug) nodes
+n1 Leader    term=2 vote=1 lead=1 commit=77 applied=77 log=[snap 0 .. 77] lastTerm=2
+n2 Follower  term=2 vote=1 lead=1 commit=77 applied=77 log=[snap 0 .. 77] lastTerm=2
+n3 Follower  term=2 vote=0 lead=1 commit=77 applied=77 log=[snap 0 .. 77] lastTerm=2
+(debug) back 20
+step 2165, t=1.322776465s, running
+(debug) events 12
+  #2158 1.309169664s deliver n3 peer=n1 msg=1186 MsgHeartbeat t2 i0 n0 c77 rfalse
+  #2158 1.309169664s send n3 peer=n1 msg=1188 delay=9324212 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #2159 1.310026823s deliver n1 peer=n2 msg=1187 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #2160 1.312103166s tick n1
+  #2160 1.312103166s send n1 peer=n2 msg=1189 delay=13217397 MsgHeartbeat t2 i0 n0 c77 rfalse
+  #2160 1.312103166s send n1 peer=n3 msg=1190 delay=14072201 MsgHeartbeat t2 i0 n0 c77 rfalse
+  #2161 1.312559569s tick n2
+  #2162 1.313522658s deliver n2 peer=n1 msg=1185 MsgHeartbeat t2 i0 n0 c77 rfalse
+  #2162 1.313522658s send n2 peer=n1 msg=1191 delay=9253807 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #2163 1.314635015s tick n3
+  #2164 1.318493876s deliver n1 peer=n3 msg=1188 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #2165 1.322776465s deliver n1 peer=n2 msg=1191 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+(debug) inflight
+  #1189 n1 -> n2 arrives 1.325320563s: MsgHeartbeat t2 i0 n0 c77 rfalse
+  #1190 n1 -> n3 arrives 1.326175367s: MsgHeartbeat t2 i0 n0 c77 rfalse
+(debug) run-to violation
+not hit before the run ended
+step 2185, t=1.35s, finished
+(debug) finish
+seed=35 FAIL mutations=stale-read violation=none history=NOT linearizable ops=104/104 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=d61374e73d7bd47
+
+# first divergence: same options with correct code (A) vs with stale-read (B)
+
+first difference at event 438 (step 262); 4370 and 4017 events in total
+common prefix (last events):
+    #259 197.017942ms send n1 peer=n3 msg=118 delay=7724449 MsgAppResp t1 i9 n0 c0 rfalse
+    #260 197.236814ms deliver n1 peer=n3 msg=98 MsgApp t1 i9 n0 c6 rfalse
+    #260 197.236814ms send n1 peer=n3 msg=119 delay=4163528 MsgAppResp t1 i9 n0 c0 rfalse
+    #261 197.934846ms deliver n1 peer=n3 msg=103 MsgApp t1 i7 n2 c7 rfalse
+    #261 197.934846ms send n1 peer=n3 msg=120 delay=5405218 MsgAppResp t1 i9 n0 c0 rfalse
+    #262 198.361311ms client-request n3 client=1 get(k2)
+A (mutations=none):
+  > #262 198.361311ms send n3 peer=n1 msg=121 delay=7612016 MsgHeartbeat t1 i0 n0 c7 rfalse
+  > #262 198.361311ms send n3 peer=n2 msg=122 delay=4874958 MsgHeartbeat t1 i0 n0 c6 rfalse
+  > #263 198.857173ms deliver n2 peer=n3 msg=106 MsgApp t1 i6 n3 c7 rfalse
+  > #263 198.857173ms send n2 peer=n3 msg=123 delay=7845952 MsgAppResp t1 i7 n0 c0 rfalse
+  > #264 199.318644ms client-timeout n3 client=0
+  > #265 200ms check
+  result: seed=35 ok mutations=none violation=none history=linearizable ops=91/91 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=c3f7924c8878bba3
+B (mutations=stale-read):
+  > #263 198.857173ms deliver n2 peer=n3 msg=106 MsgApp t1 i6 n3 c7 rfalse
+  > #263 198.857173ms send n2 peer=n3 msg=121 delay=7612016 MsgAppResp t1 i7 n0 c0 rfalse
+  > #264 199.318644ms client-timeout n3 client=0
+  > #265 200ms check
+  > #266 200.361311ms client-reply n3 client=1
+  > #266 200.361311ms client-ok n3 client=1 get(k2) -> "1.1;"
+  result: seed=35 FAIL mutations=stale-read violation=none history=NOT linearizable ops=104/104 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=d61374e73d7bd47

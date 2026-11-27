@@ -5,6 +5,7 @@
 //	raftlab-debug -repro testdata/schedules/commit-prev-term.json
 //	raftlab-debug -measure-back -seeds 200 -out results/debug-back.json
 //	raftlab-debug -seed 151 -diff commit-prev-term     # first divergence: correct vs mutated
+//	raftlab-debug -seed 35 -mutation stale-read -viz h.html -shiviz run.log
 //
 // Type "help" at the prompt for the commands.
 package main
@@ -37,6 +38,8 @@ func main() {
 		out     = flag.String("out", "", "with -measure-back: write results as JSON here")
 		diff    = flag.String("diff", "", "compare the run with the same seed run with these mutations instead, and show the first divergence")
 		context = flag.Int("context", 8, "with -diff: events of context on each side")
+		shiviz  = flag.String("shiviz", "", "run to the end (or the violation) and write a ShiViz log here")
+		viz     = flag.String("viz", "", "run to the end and write Porcupine's history view (with faults marked) here")
 	)
 	flag.Parse()
 
@@ -53,6 +56,18 @@ func main() {
 			os.Exit(2)
 		}
 		o = r.Options()
+		// An explicit -mutation overrides the repro's mutations, so the same
+		// schedule can be run with correct code (e.g. -mutation none -diff X).
+		flag.Visit(func(f *flag.Flag) {
+			if f.Name == "mutation" {
+				m, err := mutation.Parse(*mut)
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(2)
+				}
+				o.Mutations = m
+			}
+		})
 	} else {
 		m, err := mutation.Parse(*mut)
 		if err != nil {
@@ -80,6 +95,18 @@ func main() {
 	s := debug.Open(o)
 	fmt.Printf("raftlab-debug: seed %d, %d nodes, mutations=%s, %d scheduled faults. Type help.\n",
 		o.Seed, o.Nodes, o.Mutations, len(scheduled(o)))
+
+	if *shiviz != "" || *viz != "" {
+		if *shiviz != "" {
+			s.Forward(^uint64(0))
+			s.Exec("shiviz "+*shiviz, os.Stdout)
+		}
+		if *viz != "" {
+			s.Exec("viz "+*viz, os.Stdout)
+		}
+		fmt.Println(s.Where())
+		return
+	}
 
 	if *script != "" {
 		for _, cmd := range strings.Split(*script, ";") {

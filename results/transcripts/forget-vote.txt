@@ -1,0 +1,79 @@
+# raftlab-debug session on harness/testdata/schedules/forget-vote.json
+
+raftlab-debug: seed 179, 3 nodes, mutations=forget-vote, 6 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  663.68104ms crash n3, restart after 654.107494ms
+  761.407517ms pause n2 for 309.852975ms
+  1.241348111s crash n1, restart after 700.495795ms
+  1.344013647s slow network for 128.377342ms
+  1.514832191s crash n3, restart after 640.438922ms
+  1.849197827s crash n2, restart after 340.276452ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+breakpoint: violation
+  #1498 2.168254413s deliver n1 peer=n3 msg=663 MsgVoteResp t4 i0 n0 c0 rfalse
+  #1498 2.168254413s send n1 peer=n2 msg=664 delay=10746581 MsgApp t4 i21 n1 c20 rfalse
+  #1498 2.168254413s send n1 peer=n3 msg=665 delay=13861967 MsgApp t4 i21 n1 c20 rfalse
+  #1498 2.168254413s role n1 term=4 vote=1 lead=1 commit=20 last=22 Leader
+  #1498 2.168254413s violation ElectionSafety: nodes 2 and 1 both leader in term 4
+step 1498, t=2.168254413s, VIOLATION ElectionSafety: nodes 2 and 1 both leader in term 4
+(debug) nodes
+n1 Leader    term=4 vote=1 lead=1 commit=20 applied=20 log=[snap 20 .. 22] lastTerm=4
+n2 DOWN
+n3 Follower  term=4 vote=1 lead=0 commit=13 applied=13 log=[snap 10 .. 14] lastTerm=1
+(debug) back 20
+step 1478, t=2.117762398s, running
+(debug) events 12
+  #1470 2.095930376s tick n2
+  #1471 2.09890974s tick n3
+  #1472 2.1s check
+  #1473 2.102275469s tick n1
+  #1474 2.106610375s tick n2
+  #1475 2.1093884s tick n3
+  #1476 2.113270372s tick n1
+  #1476 2.113270372s send n1 peer=n2 msg=659 delay=6277397 MsgVote t4 i21 n0 c0 rfalse
+  #1476 2.113270372s send n1 peer=n3 msg=660 delay=4492026 MsgVote t4 i21 n0 c0 rfalse
+  #1477 2.117290374s tick n2
+  #1478 2.117762398s deliver n3 peer=n1 msg=660 MsgVote t4 i21 n0 c0 rfalse
+  #1478 2.117762398s drop n1 peer=n3 msg=660 at arrival: MsgVote t4 i21 n0 c0 rfalse
+(debug) inflight
+  #659 n1 -> n2 arrives 2.119547769s: MsgVote t4 i21 n0 c0 rfalse
+(debug) run-to violation
+hit: violation
+  #1498 2.168254413s deliver n1 peer=n3 msg=663 MsgVoteResp t4 i0 n0 c0 rfalse
+  #1498 2.168254413s send n1 peer=n2 msg=664 delay=10746581 MsgApp t4 i21 n1 c20 rfalse
+  #1498 2.168254413s send n1 peer=n3 msg=665 delay=13861967 MsgApp t4 i21 n1 c20 rfalse
+  #1498 2.168254413s role n1 term=4 vote=1 lead=1 commit=20 last=22 Leader
+  #1498 2.168254413s violation ElectionSafety: nodes 2 and 1 both leader in term 4
+step 1498, t=2.168254413s, VIOLATION ElectionSafety: nodes 2 and 1 both leader in term 4
+(debug) finish
+seed=179 FAIL mutations=forget-vote violation=ElectionSafety: nodes 2 and 1 both leader in term 4 history=not checked (run stopped at violation) ops=27/28 unknown=1 leaders=3 crashes=4 partitions=0 pauses=1 snapshots=0 trace=d7ae86d076b27b00
+
+# first divergence: same options with correct code (A) vs with forget-vote (B)
+
+first difference at event 2419 (step 1494); 7457 and 2428 events in total
+common prefix (last events):
+    #1491 2.155271113s apply n3 index=13 term=1
+    #1491 2.155271113s start n3 term=4 last=14
+    #1492 2.15712157s deliver n2 peer=n1 msg=661 MsgVote t4 i21 n0 c0 rfalse
+    #1492 2.15712157s drop n1 peer=n2 msg=661 at arrival: MsgVote t4 i21 n0 c0 rfalse
+    #1493 2.157249984s tick n1
+    #1494 2.157545867s deliver n3 peer=n1 msg=662 MsgVote t4 i21 n0 c0 rfalse
+A (mutations=none):
+  > #1494 2.157545867s send n3 peer=n1 msg=663 delay=10708546 MsgVoteResp t4 i0 n0 c0 rtrue
+  > #1495 2.16001037s tick n2
+  > #1496 2.1617817s tick n3
+  > #1497 2.168244887s tick n1
+  > #1498 2.168254413s deliver n1 peer=n3 msg=663 MsgVoteResp t4 i0 n0 c0 rtrue
+  > #1499 2.170690369s tick n2
+  result: seed=179 ok mutations=none violation=none history=linearizable ops=111/111 unknown=0 leaders=4 crashes=4 partitions=0 pauses=1 snapshots=18 trace=a9a850e6d5a28d3b
+B (mutations=forget-vote):
+  > #1494 2.157545867s send n3 peer=n1 msg=663 delay=10708546 MsgVoteResp t4 i0 n0 c0 rfalse
+  > #1495 2.16001037s tick n2
+  > #1496 2.1617817s tick n3
+  > #1497 2.168244887s tick n1
+  > #1498 2.168254413s deliver n1 peer=n3 msg=663 MsgVoteResp t4 i0 n0 c0 rfalse
+  > #1498 2.168254413s send n1 peer=n2 msg=664 delay=10746581 MsgApp t4 i21 n1 c20 rfalse
+  result: seed=179 FAIL mutations=forget-vote violation=ElectionSafety: nodes 2 and 1 both leader in term 4 history=not checked (run stopped at violation) ops=27/28 unknown=1 leaders=3 crashes=4 partitions=0 pauses=1 snapshots=0 trace=d7ae86d076b27b00

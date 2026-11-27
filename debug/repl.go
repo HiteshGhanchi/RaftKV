@@ -3,6 +3,7 @@ package debug
 import (
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -23,6 +24,8 @@ const Help = `commands:
   events [N]               the last N events (default 20)
   faults                   faults injected so far
   finish                   run to the end and print the result
+  shiviz FILE              write the events so far for the ShiViz visualiser (vector clocks)
+  viz FILE                 run to the end and write Porcupine's history view, with faults marked
   quit           (q)
 `
 
@@ -171,15 +174,34 @@ func (s *Session) Exec(line string, w io.Writer) (quit bool) {
 		}
 	case "faults":
 		fs := s.sim.Schedule()
-		if len(fs) == 0 {
-			fmt.Fprintln(w, "no faults yet")
-		}
 		for _, ft := range fs {
 			fmt.Fprintf(w, "  %s\n", ft)
+		}
+		if sch := s.opt.Schedule; sch != nil && len(fs) < len(sch.Faults) {
+			fmt.Fprintln(w, "scheduled, not yet injected:")
+			for _, ft := range sch.Faults[len(fs):] {
+				fmt.Fprintf(w, "  %s\n", ft)
+			}
+		} else if len(fs) == 0 {
+			fmt.Fprintln(w, "no faults yet")
 		}
 	case "finish":
 		r := s.Finish()
 		fmt.Fprintln(w, r)
+	case "shiviz", "viz":
+		if arg == "" {
+			fmt.Fprintf(w, "usage: %s FILE\n", f[0])
+			return false
+		}
+		if err := s.export(f[0], arg); err != nil {
+			fmt.Fprintln(w, err)
+			return false
+		}
+		if f[0] == "shiviz" {
+			fmt.Fprintf(w, "wrote %s (%d events so far); in ShiViz use the regex %s\n", arg, len(s.events), ShiVizRegex)
+		} else {
+			fmt.Fprintf(w, "wrote %s (the run was finished first)\n", arg)
+		}
 	case "quit", "q", "exit":
 		return true
 	default:
@@ -192,4 +214,20 @@ func (s *Session) printLast(w io.Writer) {
 	for _, e := range s.LastEvents() {
 		fmt.Fprintf(w, "  #%d %s\n", e.Step, e)
 	}
+}
+
+func (s *Session) export(kind, path string) error {
+	if kind == "viz" {
+		r := s.Finish()
+		return r.History.Visualize(path)
+	}
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	if err := ShiViz(s.events, f); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
 }

@@ -1,0 +1,106 @@
+# raftlab-debug session on harness/testdata/schedules/commit-prev-term.json
+
+raftlab-debug: seed 151, 3 nodes, mutations=commit-prev-term, 18 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  126.720706ms crash n2, restart after 365.852151ms
+  231.29544ms crash n3, restart after 363.065703ms
+  332.350179ms pause n1 for 108.880045ms
+  408.874693ms partition [3 2] | [1] for 494.281448ms
+  564.154231ms partition [2 1] | [3] for 177.668773ms
+  897.675148ms slow network for 541.419965ms
+  1.176424036s pause n1 for 305.777966ms
+  1.364131521s crash n1, restart after 662.124696ms
+  2.020206093s pause n3 for 171.26328ms
+  2.103837996s pause n3 for 137.837957ms
+  2.196840405s slow network for 503.526266ms
+  2.612643595s pause n3 for 383.235072ms
+  2.732951169s partition [2] | [1 3] for 880.472154ms
+  2.873146934s crash n2, restart after 614.138073ms
+  2.997530439s pause n1 for 308.632391ms
+  3.218010645s crash n3, restart after 440.812617ms
+  3.604806441s slow network for 288.247211ms
+  3.832098914s block n1->n2 for 990.281569ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+breakpoint: violation
+  #3556 3.945764369s deliver n2 peer=n3 msg=878 MsgVoteResp t13 i0 n0 c0 rfalse
+  #3556 3.945764369s send n2 peer=n1 msg=879 delay=5058009 MsgApp t13 i29 n1 c25 rfalse
+  #3556 3.945764369s send n2 peer=n3 msg=880 delay=12745514 MsgApp t13 i29 n1 c25 rfalse
+  #3556 3.945764369s role n2 term=13 vote=2 lead=2 commit=25 last=30 Leader
+  #3556 3.945764369s violation LeaderCompleteness: new leader 2 (term 13) lacks applied entry 29 (term 2)
+step 3556, t=3.945764369s, VIOLATION LeaderCompleteness: new leader 2 (term 13) lacks applied entry 29 (term 2)
+(debug) nodes
+n1 Follower  term=13 vote=0 lead=0 commit=31 applied=31 log=[snap 30 .. 68] lastTerm=12
+n2 Leader    term=13 vote=2 lead=2 commit=25 applied=25 log=[snap 20 .. 30] lastTerm=13
+n3 Follower  term=13 vote=2 lead=0 commit=29 applied=29 log=[snap 20 .. 33] lastTerm=2
+(debug) back 20
+step 3536, t=3.931930318s, running
+(debug) events 12
+  #3531 3.927735259s tick n1
+  #3531 3.927735259s drop n1 peer=n2 blocked: MsgHeartbeat t12 i0 n0 c0 rfalse
+  #3531 3.927735259s send n1 peer=n3 msg=871 delay=3783341 MsgHeartbeat t12 i0 n0 c29 rfalse
+  #3532 3.929634103s client-reply n3 client=1
+  #3533 3.930713635s deliver n3 peer=n1 msg=848 MsgHeartbeat t12 i0 n0 c0 rfalse
+  #3533 3.930713635s drop n3 peer=n1 lost: MsgHeartbeatResp t12 i0 n0 c0 rfalse
+  #3534 3.931093319s deliver n3 peer=n1 msg=863 MsgHeartbeat t12 i0 n0 c29 rfalse
+  #3534 3.931093319s send n3 peer=n1 msg=872 delay=2687121 MsgHeartbeatResp t12 i0 n0 c0 rfalse
+  #3535 3.9315186s deliver n3 peer=n1 msg=871 MsgHeartbeat t12 i0 n0 c29 rfalse
+  #3535 3.9315186s send n3 peer=n1 msg=873 delay=6322075 MsgHeartbeatResp t12 i0 n0 c0 rfalse
+  #3536 3.931930318s deliver n3 peer=n1 msg=866 MsgApp t12 i31 n1 c29 rfalse
+  #3536 3.931930318s send n3 peer=n1 msg=874 delay=9241341 MsgAppResp t12 i32 n0 c0 rfalse
+(debug) inflight
+  #865 n3 -> n1 arrives 3.933409443s: MsgAppResp t12 i30 n0 c0 rfalse
+  #872 n3 -> n1 arrives 3.93378044s: MsgHeartbeatResp t12 i0 n0 c0 rfalse
+  #867 n3 -> n1 arrives 3.934792898s: MsgAppResp t12 i31 n0 c0 rfalse
+  #869 n2 -> n1 arrives 3.93507175s: MsgVote t13 i29 n0 c0 rfalse
+  #868 n1 -> n3 arrives 3.935950761s: MsgApp t12 i32 n1 c29 rfalse
+  #873 n3 -> n1 arrives 3.937840675s: MsgHeartbeatResp t12 i0 n0 c0 rfalse
+  #870 n2 -> n3 arrives 3.93850361s: MsgVote t13 i29 n0 c0 rfalse
+  #874 n3 -> n1 arrives 3.941171659s: MsgAppResp t12 i32 n0 c0 rfalse
+  #845 n1 -> n2 arrives 3.965381367s: MsgApp t12 i63 n1 c27 rfalse
+  #847 n1 -> n2 arrives 3.989276993s: MsgHeartbeat t12 i0 n0 c0 rfalse
+  #855 n1 -> n3 arrives 3.995524694s: MsgHeartbeat t12 i0 n0 c0 rfalse
+  #853 n3 -> n1 arrives 3.999768793s: MsgHeartbeatResp t12 i0 n0 c0 rfalse
+  #854 n1 -> n3 arrives 4.036362971s: MsgHeartbeat t12 i0 n0 c0 rfalse
+  #843 n1 -> n3 arrives 4.039573173s: MsgVote t12 i63 n0 c0 rfalse
+  #856 n1 -> n3 arrives 4.071543026s: MsgHeartbeat t12 i0 n0 c0 rfalse
+  #849 n1 -> n2 arrives 4.073047653s: MsgHeartbeat t12 i0 n0 c0 rfalse
+(debug) run-to violation
+hit: violation
+  #3556 3.945764369s deliver n2 peer=n3 msg=878 MsgVoteResp t13 i0 n0 c0 rfalse
+  #3556 3.945764369s send n2 peer=n1 msg=879 delay=5058009 MsgApp t13 i29 n1 c25 rfalse
+  #3556 3.945764369s send n2 peer=n3 msg=880 delay=12745514 MsgApp t13 i29 n1 c25 rfalse
+  #3556 3.945764369s role n2 term=13 vote=2 lead=2 commit=25 last=30 Leader
+  #3556 3.945764369s violation LeaderCompleteness: new leader 2 (term 13) lacks applied entry 29 (term 2)
+step 3556, t=3.945764369s, VIOLATION LeaderCompleteness: new leader 2 (term 13) lacks applied entry 29 (term 2)
+(debug) finish
+seed=151 FAIL mutations=commit-prev-term violation=LeaderCompleteness: new leader 2 (term 13) lacks applied entry 29 (term 2) history=not checked (run stopped at violation) ops=21/25 unknown=4 leaders=6 crashes=5 partitions=3 pauses=6 snapshots=1 trace=f36bf20e07da69d8
+
+# first divergence: same options with correct code (A) vs with commit-prev-term (B)
+
+first difference at event 1095 (step 704); 6440 and 4983 events in total
+common prefix (last events):
+    #701 724.255529ms drop n3 peer=n2 blocked: MsgVote t2 i10 n0 c0 rfalse
+    #701 724.255529ms role n3 term=2 vote=3 lead=0 commit=9 last=10 Candidate
+    #702 724.347044ms deliver n1 peer=n2 msg=217 MsgAppResp t2 i9 n0 c0 rfalse
+    #702 724.347044ms send n1 peer=n2 msg=225 delay=14008958 MsgApp t2 i9 n1 c9 rfalse
+    #703 725.58114ms client-request n3 client=0 put(k1, "1.3;")
+    #704 726.248589ms deliver n1 peer=n2 msg=222 MsgAppResp t2 i10 n0 c0 rfalse
+A (mutations=none):
+  > #704 726.248589ms send n1 peer=n2 msg=226 delay=6221609 MsgApp t2 i10 n1 c9 rfalse
+  > #705 729.58114ms client-reply n3 client=0
+  > #706 730.869595ms tick n1
+  > #706 730.869595ms send n1 peer=n2 msg=227 delay=3368138 MsgHeartbeat t2 i0 n0 c9 rfalse
+  > #706 730.869595ms drop n1 peer=n3 blocked: MsgHeartbeat t2 i0 n0 c0 rfalse
+  > #707 731.881276ms deliver n2 peer=n1 msg=219 MsgApp t2 i8 n1 c9 rfalse
+  result: seed=151 ok mutations=none violation=none history=linearizable ops=47/47 unknown=0 leaders=6 crashes=5 partitions=3 pauses=6 snapshots=3 trace=68c3c2638d248832
+B (mutations=commit-prev-term):
+  > #704 726.248589ms send n1 peer=n2 msg=226 delay=6221609 MsgApp t2 i10 n1 c10 rfalse
+  > #704 726.248589ms apply n1 index=10 term=1
+  > #705 729.58114ms client-reply n3 client=0
+  > #706 730.869595ms tick n1
+  > #706 730.869595ms send n1 peer=n2 msg=227 delay=3368138 MsgHeartbeat t2 i0 n0 c10 rfalse
+  > #706 730.869595ms drop n1 peer=n3 blocked: MsgHeartbeat t2 i0 n0 c0 rfalse
+  result: seed=151 FAIL mutations=commit-prev-term violation=LeaderCompleteness: new leader 2 (term 13) lacks applied entry 29 (term 2) history=not checked (run stopped at violation) ops=21/25 unknown=4 leaders=6 crashes=5 partitions=3 pauses=6 snapshots=1 trace=f36bf20e07da69d8

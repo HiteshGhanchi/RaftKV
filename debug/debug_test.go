@@ -2,6 +2,7 @@ package debug
 
 import (
 	"encoding/json"
+	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -207,5 +208,23 @@ func TestShiViz_ClocksRespectCausality(t *testing.T) {
 			t.Fatalf("%s's own clock did not grow: %q", self, l)
 		}
 		last[self] = vc[self]
+	}
+}
+
+// The export commands write their files.
+func TestExec_Exports(t *testing.T) {
+	dir := t.TempDir()
+	s := Open(harness.DefaultOptions(3))
+	s.Forward(500)
+	var out strings.Builder
+	s.Exec("shiviz "+dir+"/run.log", &out)
+	s.Exec("viz "+dir+"/h.html", &out)
+	for _, f := range []string{"run.log", "h.html"} {
+		if fi, err := os.Stat(dir + "/" + f); err != nil || fi.Size() == 0 {
+			t.Fatalf("%s not written: %v\n%s", f, err, out.String())
+		}
+	}
+	if !s.Done() {
+		t.Fatal("viz should finish the run first")
 	}
 }

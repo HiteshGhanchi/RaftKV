@@ -163,7 +163,7 @@ approval.
 | Q9 | Weekly hours available? | Sets the pace of the ownership gate and reviews. | **[OPEN]** (6 h/week was the earlier figure.) | owner |
 | Q10 | Hardware for multi-machine tests (P4.6)? | Decides whether P4.6 needs cloud machines. | **[OPEN]** | owner |
 | Q11 | Which phases matter most? | Can reorder the plan. | **[OPEN]** The approved order assumes debugger, website, P8.1. | owner |
-| Q12 | Ownership gate status? | P1 code waits for it. | **[OPEN]** Exercises for all four functions are in `docs/BUILD_GUIDE.md`; progress goes in `docs/OWNERSHIP.md`. | owner |
+| Q12 | Ownership gate status? | P1 code waits for it. | **Deferred by the owner** (2026-11-27): the P1 code was built first; the owner does the four exercises in `docs/BUILD_GUIDE.md` afterwards and records them in `docs/OWNERSHIP.md`. | owner |
 | Q13 | Website address? | Links on the resume and README. | **[OPEN]** `hiteshghanchi.github.io/RaftKV` costs nothing; a custom domain costs money. | owner |
 | Q14 | Analytics on the site? | Evidence of real use vs. privacy. | **[OPEN]** Proposed: GoatCounter (cookieless) or none. | owner |
 

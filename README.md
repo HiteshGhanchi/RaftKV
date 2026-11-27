@@ -70,11 +70,12 @@ sharding (see [Limitations](#limitations)).
 | [`peer/`](peer/) | Glues node + storage + store; runs the Ready loop in the order Raft requires. |
 | [`sim/`](sim/) | Deterministic discrete-event simulator: clock, network and disk models. Knows nothing about Raft. |
 | [`check/`](check/) | History recorder and Porcupine model for a KV store. Knows nothing about Raft. |
-| [`harness/`](harness/) | A whole cluster in the simulator: fault schedule, retrying clients, invariant checks, sweeps. |
+| [`harness/`](harness/) | A whole cluster in the simulator: fault schedule (recorded as data and replayable), retrying clients, invariant checks, sweeps, shrinking of failing runs. |
+| [`debug/`](debug/) | Time-travelling debugger over a simulated run: step, breakpoints, go back, diff two runs, ShiViz export. |
 | [`mutation/`](mutation/) | The bug zoo switches. |
 | [`server/`](server/), [`transport/`](transport/), [`client/`](client/) | The real networked system over HTTP. |
 | [`spec/`](spec/) | TLA+ spec of election and replication, with the same property names as the Go invariants. |
-| [`cmd/`](cmd/) | `raftlab-server`, `raftlab` (CLI), `raftlab-chaos`, `raftlab-bench`. |
+| [`cmd/`](cmd/) | `raftlab-server`, `raftlab` (CLI), `raftlab-chaos`, `raftlab-debug`, `raftlab-bench`. |
 
 ---
 
@@ -92,6 +93,10 @@ make chaos SEEDS=1000         # 1000 seeds of the fault-injection harness, in pa
 
 ```bash
 ./bin/raftlab-chaos -seed 35 -mutation stale-read -v   # replay one failing seed with its full trace
+```
+
+```bash
+./bin/raftlab-debug -repro harness/testdata/schedules/commit-prev-term.json   # step through the Figure 8 bug (type help)
 ```
 
 ```bash
@@ -132,6 +137,28 @@ Then, in another terminal:
 
 Mapping from paper rules to code and from spec properties to Go assertions:
 [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
+
+---
+
+## The replay debugger ([`docs/DEBUGGER.md`](docs/DEBUGGER.md))
+
+A failing seed is not just replayable, it is debuggable:
+
+- **Step, break, go back.** `raftlab-debug` runs a seed one event at a time, stops on conditions
+  such as `violation`, `elected` or `commit 2 > 10`, and shows every node's role, term, log and the
+  messages in flight. Going back re-runs the deterministic prefix: `back 1` at 90% of a run takes
+  24.8 ms at p99 over 200 seeds ([`results/debug-back.json`](results/debug-back.json)).
+- **Shrink.** Faults are recorded as data, so a failing run can be shrunk by delta debugging. Six
+  of the eight bug-zoo failures shrink to 0–3 faults; the two rarest shrink least
+  ([`results/shrink.json`](results/shrink.json)). The shrunk runs are regression tests.
+- **Diff.** The same seed with and without a bug, compared event by event, shows the first step
+  where the bug changes behaviour.
+- **Export.** A structured JSON Lines trace, a ShiViz log with vector clocks, and Porcupine's
+  history view with crashes and partitions drawn on it.
+
+The walkthrough in [`docs/DEBUGGER.md`](docs/DEBUGGER.md) uses these tools to find the exact step
+where the Figure 8 bug commits an entry that a later leader does not have. Transcripts for all
+eight bugs are in [`results/transcripts/`](results/transcripts/).
 
 ---
 
@@ -250,6 +277,7 @@ Ongaro's `raft.tla`.
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Every planning question (deadline, environment, scope, design trade-offs) with the answer or decision and who made it |
 | [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | Figure 2 rule → code, and spec property → Go assertion |
 | [`docs/BUGZOO.md`](docs/BUGZOO.md) | Each mutation: what it breaks, why it is caught, how to replay it |
+| [`docs/DEBUGGER.md`](docs/DEBUGGER.md) | The replay debugger, shrinking and diffs, with a walkthrough of the Figure 8 bug |
 | [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) | Benchmark method, raw results and caveats |
 | [`docs/WRITEUP.md`](docs/WRITEUP.md) | One-page summary / blog draft |
 | [`lessons/teaching.md`](lessons/teaching.md) | Distributed-systems notes for someone new to the topic |

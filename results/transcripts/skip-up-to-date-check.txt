@@ -1,0 +1,93 @@
+# raftlab-debug session on harness/testdata/schedules/skip-up-to-date-check.json
+
+raftlab-debug: seed 1, 5 nodes, mutations=skip-up-to-date-check, 1 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  2.258500002s block n5->n3 for 578.226488ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+breakpoint: violation
+  #5691 2.445780375s deliver n3 peer=n2 msg=4001 MsgVoteResp t2 i0 n0 c0 rfalse
+  #5691 2.445780375s send n3 peer=n1 msg=4017 delay=9798634 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s send n3 peer=n2 msg=4018 delay=6051431 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s send n3 peer=n4 msg=4019 delay=7407385 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s send n3 peer=n5 msg=4020 delay=4332397 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s role n3 term=2 vote=3 lead=3 commit=61 last=62 Leader
+  #5691 2.445780375s violation LeaderCompleteness: new leader 3 (term 2) lacks applied entry 62 (term 1)
+step 5691, t=2.445780375s, VIOLATION LeaderCompleteness: new leader 3 (term 2) lacks applied entry 62 (term 1)
+(debug) nodes
+n1 Follower  term=2 vote=3 lead=0 commit=66 applied=66 log=[snap 40 .. 66] lastTerm=1
+n2 Follower  term=2 vote=3 lead=0 commit=66 applied=66 log=[snap 40 .. 66] lastTerm=1
+n3 Leader    term=2 vote=3 lead=3 commit=61 applied=61 log=[snap 40 .. 62] lastTerm=2
+n4 Follower  term=2 vote=3 lead=0 commit=66 applied=66 log=[snap 40 .. 66] lastTerm=1
+n5 Follower  term=2 vote=3 lead=0 commit=66 applied=66 log=[snap 40 .. 66] lastTerm=1
+(debug) back 20
+step 5671, t=2.437717736s, running
+(debug) events 12
+  #5664 2.434680714s send n2 peer=n5 msg=4005 delay=11863655 MsgAppResp t2 i0 n0 c0 rtrue
+  #5665 2.435749509s deliver n4 peer=n3 msg=3990 MsgVote t2 i61 n0 c0 rfalse
+  #5665 2.435749509s send n4 peer=n3 msg=4006 delay=6222714 MsgVoteResp t2 i0 n0 c0 rfalse
+  #5665 2.435749509s role n4 term=2 vote=3 lead=0 commit=66 last=66 Follower
+  #5666 2.436114817s deliver n5 peer=n1 msg=4000 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #5667 2.437019973s tick n3
+  #5668 2.437022761s deliver n1 peer=n5 msg=4002 MsgHeartbeat t1 i0 n0 c66 rfalse
+  #5668 2.437022761s send n1 peer=n5 msg=4007 delay=6879809 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #5669 2.437037083s deliver n5 peer=n1 msg=3979 MsgAppResp t1 i66 n0 c0 rfalse
+  #5670 2.4376301s deliver n4 peer=n5 msg=4004 MsgHeartbeat t1 i0 n0 c66 rfalse
+  #5670 2.4376301s send n4 peer=n5 msg=4008 delay=1418679 MsgAppResp t2 i0 n0 c0 rtrue
+  #5671 2.437717736s deliver n5 peer=n4 msg=3998 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+(debug) inflight
+  #3982 n5 -> n4 arrives 2.43777289s: MsgApp t1 i66 n0 c65 rfalse
+  #3997 n2 -> n5 arrives 2.438065133s: MsgAppResp t1 i66 n0 c0 rfalse
+  #3991 n3 -> n5 arrives 2.438173617s: MsgVote t2 i61 n0 c0 rfalse
+  #3986 n2 -> n5 arrives 2.438742213s: MsgAppResp t1 i66 n0 c0 rfalse
+  #4008 n4 -> n5 arrives 2.439048779s: MsgAppResp t2 i0 n0 c0 rtrue
+  #3988 n3 -> n1 arrives 2.439650512s: MsgVote t2 i61 n0 c0 rfalse
+  #3996 n5 -> n4 arrives 2.44017761s: MsgHeartbeat t1 i0 n0 c66 rfalse
+  #3993 n1 -> n5 arrives 2.440216983s: MsgAppResp t1 i66 n0 c0 rfalse
+  #4006 n4 -> n3 arrives 2.441972223s: MsgVoteResp t2 i0 n0 c0 rfalse
+  #4007 n1 -> n5 arrives 2.44390257s: MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #3999 n4 -> n5 arrives 2.44548868s: MsgAppResp t1 i66 n0 c0 rfalse
+  #4001 n2 -> n3 arrives 2.445780375s: MsgVoteResp t2 i0 n0 c0 rfalse
+  #4005 n2 -> n5 arrives 2.446544369s: MsgAppResp t2 i0 n0 c0 rtrue
+  #4003 n5 -> n2 arrives 2.448952384s: MsgHeartbeat t1 i0 n0 c66 rfalse
+(debug) run-to violation
+hit: violation
+  #5691 2.445780375s deliver n3 peer=n2 msg=4001 MsgVoteResp t2 i0 n0 c0 rfalse
+  #5691 2.445780375s send n3 peer=n1 msg=4017 delay=9798634 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s send n3 peer=n2 msg=4018 delay=6051431 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s send n3 peer=n4 msg=4019 delay=7407385 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s send n3 peer=n5 msg=4020 delay=4332397 MsgApp t2 i61 n1 c61 rfalse
+  #5691 2.445780375s role n3 term=2 vote=3 lead=3 commit=61 last=62 Leader
+  #5691 2.445780375s violation LeaderCompleteness: new leader 3 (term 2) lacks applied entry 62 (term 1)
+step 5691, t=2.445780375s, VIOLATION LeaderCompleteness: new leader 3 (term 2) lacks applied entry 62 (term 1)
+(debug) finish
+seed=1 FAIL mutations=skip-up-to-date-check violation=LeaderCompleteness: new leader 3 (term 2) lacks applied entry 62 (term 1) history=not checked (run stopped at violation) ops=93/94 unknown=1 leaders=2 crashes=0 partitions=0 pauses=0 snapshots=5 trace=b0a1e0c04e69c457
+
+# first divergence: same options with correct code (A) vs with skip-up-to-date-check (B)
+
+first difference at event 10221 (step 5661); 17695 and 10280 events in total
+common prefix (last events):
+    #5658 2.432003538s deliver n4 peer=n5 msg=3976 MsgApp t1 i66 n0 c65 rfalse
+    #5658 2.432003538s send n4 peer=n5 msg=3999 delay=13485142 MsgAppResp t1 i66 n0 c0 rfalse
+    #5659 2.432041158s deliver n1 peer=n5 msg=3994 MsgHeartbeat t1 i0 n0 c65 rfalse
+    #5659 2.432041158s send n1 peer=n5 msg=4000 delay=4073659 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+    #5660 2.432186425s deliver n5 peer=n1 msg=3987 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+    #5661 2.432336842s deliver n2 peer=n3 msg=3989 MsgVote t2 i61 n0 c0 rfalse
+A (mutations=none):
+  > #5661 2.432336842s send n2 peer=n3 msg=4001 delay=13443533 MsgVoteResp t2 i0 n0 c0 rtrue
+  > #5661 2.432336842s role n2 term=2 vote=0 lead=0 commit=66 last=66 Follower
+  > #5662 2.434339896s tick n1
+  > #5663 2.434587096s client-request n5 client=0 get(k2)
+  > #5663 2.434587096s send n5 peer=n1 msg=4002 delay=2435665 MsgHeartbeat t1 i0 n0 c66 rfalse
+  > #5663 2.434587096s send n5 peer=n2 msg=4003 delay=14365288 MsgHeartbeat t1 i0 n0 c66 rfalse
+  result: seed=1 ok mutations=none violation=none history=linearizable ops=155/155 unknown=0 leaders=2 crashes=0 partitions=0 pauses=0 snapshots=9 trace=19cd3c429718ddf9
+B (mutations=skip-up-to-date-check):
+  > #5661 2.432336842s send n2 peer=n3 msg=4001 delay=13443533 MsgVoteResp t2 i0 n0 c0 rfalse
+  > #5661 2.432336842s role n2 term=2 vote=3 lead=0 commit=66 last=66 Follower
+  > #5662 2.434339896s tick n1
+  > #5663 2.434587096s client-request n5 client=0 get(k2)
+  > #5663 2.434587096s send n5 peer=n1 msg=4002 delay=2435665 MsgHeartbeat t1 i0 n0 c66 rfalse
+  > #5663 2.434587096s send n5 peer=n2 msg=4003 delay=14365288 MsgHeartbeat t1 i0 n0 c66 rfalse
+  result: seed=1 FAIL mutations=skip-up-to-date-check violation=LeaderCompleteness: new leader 3 (term 2) lacks applied entry 62 (term 1) history=not checked (run stopped at violation) ops=93/94 unknown=1 leaders=2 crashes=0 partitions=0 pauses=0 snapshots=5 trace=b0a1e0c04e69c457

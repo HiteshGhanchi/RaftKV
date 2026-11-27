@@ -1,0 +1,102 @@
+# raftlab-debug session on harness/testdata/schedules/accept-stale-term.json
+
+raftlab-debug: seed 28, 5 nodes, mutations=accept-stale-term, 19 scheduled faults. Type help.
+(debug) faults
+scheduled, not yet injected:
+  100.842247ms block n1->n5 for 816.226863ms
+  257.886442ms slow network for 518.534397ms
+  796.481376ms block n5->n4 for 500.420956ms
+  888.744058ms pause n3 for 314.013678ms
+  1.087375801s partition [1] | [3 2 5 4] for 486.984612ms
+  1.375324807s pause n5 for 187.905858ms
+  1.765093979s slow network for 283.048096ms
+  1.954629559s partition [4 3 5] | [2 1] for 249.635248ms
+  2.128654177s partition [4 5] | [2 3 1] for 943.203928ms
+  2.314210245s slow network for 314.698445ms
+  2.484920871s partition [1 2] | [4 3 5] for 337.106261ms
+  2.594332377s crash n3, restart after 256.452342ms
+  2.734027426s pause n5 for 321.092896ms
+  2.938322694s slow network for 448.360167ms
+  3.043350854s partition [4] | [3 1 5 2] for 393.155405ms
+  3.226896784s pause n1 for 154.710431ms
+  3.324324245s block n1->n4 for 402.906549ms
+  3.45209067s block n3->n4 for 588.007292ms
+  3.574634967s pause n4 for 123.63541ms
+(debug) break violation
+breakpoint 1: violation
+(debug) continue
+breakpoint: violation
+  #5290 3.728300341s deliver n2 peer=n1 msg=2468 MsgHeartbeat t21 i0 n0 c42 rfalse
+  #5290 3.728300341s send n2 peer=n1 msg=2472 delay=12658780 MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #5290 3.728300341s apply n2 index=42 term=20
+  #5290 3.728300341s violation StateMachineSafety: node 2 applied index 42 term 20, another node applied term 21 there
+step 5290, t=3.728300341s, VIOLATION StateMachineSafety: node 2 applied index 42 term 20, another node applied term 21 there
+(debug) nodes
+n1 Leader    term=21 vote=1 lead=1 commit=42 applied=42 log=[snap 41 .. 42] lastTerm=21
+n2 Follower  term=21 vote=1 lead=1 commit=42 applied=42 log=[snap 41 .. 42] lastTerm=20
+n3 Follower  term=21 vote=3 lead=1 commit=42 applied=42 log=[snap 41 .. 42] lastTerm=21
+n4 Follower  term=21 vote=0 lead=1 commit=42 applied=42 log=[snap 41 .. 42] lastTerm=21
+n5 Follower  term=21 vote=1 lead=1 commit=42 applied=42 log=[snap 41 .. 42] lastTerm=21
+(debug) back 20
+step 5270, t=3.720660202s, running
+(debug) events 12
+  #5263 3.71914926s deliver n5 peer=n1 msg=2464 MsgHeartbeat t21 i0 n0 c42 rfalse
+  #5263 3.71914926s drop n5 peer=n1 lost: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #5264 3.71944101s deliver n4 peer=n5 msg=2443 MsgAppResp t21 i0 n0 c0 rtrue
+  #5265 3.719462603s deliver n2 peer=n1 msg=2460 MsgHeartbeat t21 i0 n0 c0 rfalse
+  #5265 3.719462603s drop n2 peer=n1 lost: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #5266 3.71991819s deliver n1 peer=n5 msg=2453 MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #5267 3.720256942s client-retry client=2
+  #5268 3.720411728s deliver n1 peer=n5 msg=2459 MsgAppResp t21 i42 n0 c0 rfalse
+  #5269 3.720466399s deliver n1 peer=n2 msg=2440 MsgAppResp t21 i42 n0 c0 rfalse
+  #5270 3.720660202s deliver n4 peer=n1 msg=2462 MsgHeartbeat t21 i0 n0 c42 rfalse
+  #5270 3.720660202s drop n4 peer=n1 lost: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #5270 3.720660202s apply n4 index=42 term=21
+(debug) inflight
+  #2463 n1 -> n5 arrives 3.721572187s: MsgHeartbeat t21 i0 n0 c42 rfalse
+  #2451 n2 -> n1 arrives 3.722397004s: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #2444 n1 -> n4 arrives 3.722516207s: MsgApp t21 i42 n0 c42 rfalse
+  #2461 n1 -> n3 arrives 3.723949933s: MsgHeartbeat t21 i0 n0 c42 rfalse
+  #2446 n1 -> n4 arrives 3.724485517s: MsgAppResp t21 i0 n0 c0 rtrue
+  #2454 n4 -> n1 arrives 3.724942061s: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #2458 n2 -> n4 arrives 3.726286496s: MsgAppResp t21 i42 n0 c0 rfalse
+  #2455 n2 -> n1 arrives 3.726315864s: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #2456 n1 -> n4 arrives 3.727370445s: MsgAppResp t21 i0 n0 c0 rtrue
+  #2457 n3 -> n1 arrives 3.728442335s: MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #2465 n2 -> n4 arrives 3.732263044s: MsgAppResp t21 i42 n0 c0 rfalse
+(debug) run-to violation
+hit: violation
+  #5290 3.728300341s deliver n2 peer=n1 msg=2468 MsgHeartbeat t21 i0 n0 c42 rfalse
+  #5290 3.728300341s send n2 peer=n1 msg=2472 delay=12658780 MsgHeartbeatResp t21 i0 n0 c0 rfalse
+  #5290 3.728300341s apply n2 index=42 term=20
+  #5290 3.728300341s violation StateMachineSafety: node 2 applied index 42 term 20, another node applied term 21 there
+step 5290, t=3.728300341s, VIOLATION StateMachineSafety: node 2 applied index 42 term 20, another node applied term 21 there
+(debug) finish
+seed=28 FAIL mutations=accept-stale-term violation=StateMachineSafety: node 2 applied index 42 term 20, another node applied term 21 there history=not checked (run stopped at violation) ops=42/46 unknown=4 leaders=6 crashes=1 partitions=5 pauses=5 snapshots=13 trace=1dd0089247ad062e
+
+# first divergence: same options with correct code (A) vs with accept-stale-term (B)
+
+first difference at event 887 (step 586); 11298 and 9317 events in total
+common prefix (last events):
+    #581 622.824259ms tick n2
+    #582 623.057669ms deliver n2 peer=n3 msg=132 MsgVoteResp t3 i0 n0 c0 rtrue
+    #583 624.626856ms deliver n2 peer=n5 msg=157 MsgVoteResp t3 i0 n0 c0 rtrue
+    #584 625.94225ms tick n3
+    #585 627.653579ms tick n5
+    #586 627.82662ms deliver n4 peer=n1 msg=174 MsgApp t4 i0 n1 c0 rfalse
+A (mutations=none):
+  > #586 627.82662ms send n4 peer=n1 msg=201 delay=8508926 MsgAppResp t5 i0 n0 c0 rtrue
+  > #587 630ms client-timeout n1 client=1
+  > #588 630.286513ms tick n1
+  > #588 630.286513ms send n1 peer=n2 msg=202 delay=209200127 MsgHeartbeat t4 i0 n0 c0 rfalse
+  > #588 630.286513ms send n1 peer=n3 msg=203 delay=14729763 MsgHeartbeat t4 i0 n0 c0 rfalse
+  > #588 630.286513ms drop n1 peer=n4 lost: MsgHeartbeat t4 i0 n0 c0 rfalse
+  result: seed=28 ok mutations=none violation=none history=linearizable ops=53/55 unknown=2 leaders=6 crashes=1 partitions=5 pauses=5 snapshots=18 trace=6ff03a5822dbd63c
+B (mutations=accept-stale-term):
+  > #586 627.82662ms send n4 peer=n1 msg=201 delay=8508926 MsgAppResp t5 i1 n0 c0 rfalse
+  > #587 630ms client-timeout n1 client=1
+  > #588 630.286513ms tick n1
+  > #588 630.286513ms send n1 peer=n2 msg=202 delay=209200127 MsgHeartbeat t4 i0 n0 c0 rfalse
+  > #588 630.286513ms send n1 peer=n3 msg=203 delay=14729763 MsgHeartbeat t4 i0 n0 c0 rfalse
+  > #588 630.286513ms drop n1 peer=n4 lost: MsgHeartbeat t4 i0 n0 c0 rfalse
+  result: seed=28 FAIL mutations=accept-stale-term violation=StateMachineSafety: node 2 applied index 42 term 20, another node applied term 21 there history=not checked (run stopped at violation) ops=42/46 unknown=4 leaders=6 crashes=1 partitions=5 pauses=5 snapshots=13 trace=1dd0089247ad062e

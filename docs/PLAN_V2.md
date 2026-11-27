@@ -1,8 +1,14 @@
 # Plan v2: replay debugger, browser product, hardening
 
 Status: **approved by the owner on 2026-11-27.** The questions and decisions are recorded in
-`docs/DECISIONS.md` §5. No production code is written until the P1 ownership gate is done
-(`docs/OWNERSHIP.md`), and each later phase still starts with its own design note and approval.
+`docs/DECISIONS.md` §5. The owner deferred the P1 ownership gate (Q12) and asked for the code
+first; each later phase still starts with its own design note and approval.
+
+Progress: **P1 done (2026-11-27)**: structured trace, replayable fault schedule, time-travel
+debugger, shrinking with a regression corpus, run diffs, ShiViz export and fault annotations;
+minimised schedule, transcript and diff for all 8 mutations (`results/transcripts/`), tracing
+overhead measured, walkthrough in `docs/DEBUGGER.md`. Swarm testing (P8.2a) was built and measured
+but not made the default. Next in the approved order: P8.1, then P2.
 
 Effort figures are estimates of focused build hours, not measurements. Calendar time depends
 mostly on the owner's review and ownership work.
