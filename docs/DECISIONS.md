@@ -209,3 +209,11 @@ with trace hashes identical to native on 53 runs (a spike outside the repo; P2 a
 linearizability checker, and a gRPC transport (unless profiling shows the transport dominates).
 P8.4 only in a scoped form. Reason: high cost for little extra signal over the planned phases.
 
+### P8.1 automatic mutation testing (proposed, waiting for approval)
+
+Design note: [`design/P8.1-mutation-testing.md`](design/P8.1-mutation-testing.md). Proposed
+decisions M1–M6: an own `go/ast` mutator run through `-overlay` (M1), the classic operator set (M2),
+2000 harness seeds per mutant with survivors re-run at 10,000 (M3), a harness progress check so
+liveness-only mutants are caught (M4, prompted by a spike mutant that the harness missed), timeouts
+counted as kills (M5), and a CI sample plus a nightly full run (M6).
+
