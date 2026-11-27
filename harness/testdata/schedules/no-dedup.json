@@ -1,0 +1,41 @@
+{
+  "repro_version": 1,
+  "expect": "Linearizability",
+  "note": "shrunk from bug-zoo seed 1 with no-dedup",
+  "options": {
+    "Seed": 1,
+    "Nodes": 5,
+    "Clients": 1,
+    "Keys": 3,
+    "Duration": 4000000000,
+    "Settle": 250000000,
+    "Net": {
+      "MinDelay": 1000000,
+      "MaxDelay": 15000000,
+      "DropRate": 0.01,
+      "DupRate": 0
+    },
+    "Faults": {
+      "Crash": true,
+      "Partition": true,
+      "OneWay": true,
+      "Pause": true,
+      "Slow": true,
+      "Interval": 150000000,
+      "ClockSkew": 0.2,
+      "LeaderBias": 0.5
+    },
+    "Mutations": "no-dedup",
+    "Tick": 10000000,
+    "ElectionTick": 10,
+    "SnapshotEvery": 40,
+    "MaxEntriesPerMsg": 64,
+    "CheckQuorum": true,
+    "ClientTimeout": 50000000,
+    "CheckTimeout": 20000000000,
+    "TraceLog": false,
+    "Schedule": {
+      "faults": []
+    }
+  }
+}

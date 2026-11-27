@@ -1,0 +1,237 @@
+{
+  "rows": [
+    {
+      "Mutation": "commit-prev-term",
+      "Seed": 151,
+      "File": "harness/testdata/schedules/commit-prev-term.json",
+      "property": "LeaderCompleteness",
+      "runs": 189,
+      "before": {
+        "faults": 28,
+        "nodes": 3,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 3391,
+        "ops": 25,
+        "dropRate": 0.15,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 18,
+        "nodes": 3,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 250000000,
+        "steps": 3556,
+        "ops": 25,
+        "dropRate": 0.15,
+        "dupRate": 0.02
+      }
+    },
+    {
+      "Mutation": "skip-up-to-date-check",
+      "Seed": 1,
+      "File": "harness/testdata/schedules/skip-up-to-date-check.json",
+      "property": "LeaderCompleteness",
+      "runs": 18,
+      "before": {
+        "faults": 16,
+        "nodes": 5,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 5197,
+        "ops": 93,
+        "dropRate": 0.01,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 1,
+        "nodes": 5,
+        "clients": 1,
+        "duration": 4000000000,
+        "settle": 250000000,
+        "steps": 5691,
+        "ops": 94,
+        "dropRate": 0,
+        "dupRate": 0
+      }
+    },
+    {
+      "Mutation": "forget-vote",
+      "Seed": 179,
+      "File": "harness/testdata/schedules/forget-vote.json",
+      "property": "ElectionSafety",
+      "runs": 66,
+      "before": {
+        "faults": 13,
+        "nodes": 3,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 1090,
+        "ops": 9,
+        "dropRate": 0.15,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 6,
+        "nodes": 3,
+        "clients": 1,
+        "duration": 4000000000,
+        "settle": 250000000,
+        "steps": 1498,
+        "ops": 28,
+        "dropRate": 0,
+        "dupRate": 0.02
+      }
+    },
+    {
+      "Mutation": "apply-before-commit",
+      "Seed": 1,
+      "File": "harness/testdata/schedules/apply-before-commit.json",
+      "property": "StateMachineSafety",
+      "runs": 37,
+      "before": {
+        "faults": 19,
+        "nodes": 5,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 7281,
+        "ops": 211,
+        "dropRate": 0.01,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 3,
+        "nodes": 5,
+        "clients": 4,
+        "duration": 2500000000,
+        "settle": 250000000,
+        "steps": 17362,
+        "ops": 569,
+        "dropRate": 0.01,
+        "dupRate": 0.02
+      }
+    },
+    {
+      "Mutation": "stale-read",
+      "Seed": 35,
+      "File": "harness/testdata/schedules/stale-read.json",
+      "property": "Linearizability",
+      "runs": 31,
+      "before": {
+        "faults": 22,
+        "nodes": 3,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 7291,
+        "ops": 220,
+        "dropRate": 0.05,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 1,
+        "nodes": 3,
+        "clients": 3,
+        "duration": 1100000000,
+        "settle": 250000000,
+        "steps": 2185,
+        "ops": 104,
+        "dropRate": 0.05,
+        "dupRate": 0.02
+      }
+    },
+    {
+      "Mutation": "accept-stale-term",
+      "Seed": 28,
+      "File": "harness/testdata/schedules/accept-stale-term.json",
+      "property": "StateMachineSafety",
+      "runs": 127,
+      "before": {
+        "faults": 24,
+        "nodes": 5,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 5172,
+        "ops": 49,
+        "dropRate": 0.15,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 19,
+        "nodes": 5,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 250000000,
+        "steps": 5290,
+        "ops": 46,
+        "dropRate": 0.15,
+        "dupRate": 0.02
+      }
+    },
+    {
+      "Mutation": "skip-fsync",
+      "Seed": 3,
+      "File": "harness/testdata/schedules/skip-fsync.json",
+      "property": "LeaderCompleteness",
+      "runs": 44,
+      "before": {
+        "faults": 63,
+        "nodes": 3,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 3761,
+        "ops": 32,
+        "dropRate": 0.05,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 3,
+        "nodes": 3,
+        "clients": 2,
+        "duration": 4000000000,
+        "settle": 250000000,
+        "steps": 4128,
+        "ops": 133,
+        "dropRate": 0.05,
+        "dupRate": 0.02
+      }
+    },
+    {
+      "Mutation": "no-dedup",
+      "Seed": 1,
+      "File": "harness/testdata/schedules/no-dedup.json",
+      "property": "Linearizability",
+      "runs": 16,
+      "before": {
+        "faults": 25,
+        "nodes": 5,
+        "clients": 4,
+        "duration": 4000000000,
+        "settle": 2000000000,
+        "steps": 15336,
+        "ops": 253,
+        "dropRate": 0.01,
+        "dupRate": 0.02
+      },
+      "after": {
+        "faults": 0,
+        "nodes": 5,
+        "clients": 1,
+        "duration": 4000000000,
+        "settle": 250000000,
+        "steps": 10243,
+        "ops": 142,
+        "dropRate": 0.01,
+        "dupRate": 0
+      }
+    }
+  ],
+  "source": "results/bugzoo.json"
+}

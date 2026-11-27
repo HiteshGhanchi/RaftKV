@@ -149,3 +149,29 @@ func mustParse(t *testing.T, expr string) Pred {
 }
 
 func itoa(n uint64) string { return strconv.FormatUint(n, 10) }
+
+// The same seed with and without the Figure 8 mutation runs identically up
+// to some point, then diverges; the same options never diverge.
+func TestDiff_FindsFirstDivergence(t *testing.T) {
+	a := harness.DefaultOptions(figure8Seed)
+	b := a
+	b.Mutations = mutation.CommitPrevTerm
+	if d := Diff(a, a, 5); !d.Same {
+		t.Fatalf("a run differs from itself at event %d", d.Index)
+	}
+	d := Diff(a, b, 5)
+	if d.Same || d.Index == 0 || len(d.Common) != 5 || len(d.A) == 0 || len(d.B) == 0 {
+		t.Fatalf("unexpected diff: same=%v index=%d common=%d", d.Same, d.Index, len(d.Common))
+	}
+	if string(d.A[0].Canonical()) == string(d.B[0].Canonical()) {
+		t.Fatal("reported divergence point has equal events")
+	}
+	if d.ResA.Failed() || !d.ResB.Failed() {
+		t.Fatalf("want correct run to pass and mutated run to fail: %s / %s", d.ResA, d.ResB)
+	}
+	var out strings.Builder
+	d.Print(&out, "correct", "mutated")
+	if !strings.Contains(out.String(), "first difference at event") {
+		t.Fatalf("report:\n%s", out.String())
+	}
+}

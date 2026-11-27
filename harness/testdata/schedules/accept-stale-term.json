@@ -1,0 +1,196 @@
+{
+  "repro_version": 1,
+  "expect": "StateMachineSafety",
+  "note": "shrunk from bug-zoo seed 28 with accept-stale-term",
+  "options": {
+    "Seed": 28,
+    "Nodes": 5,
+    "Clients": 4,
+    "Keys": 3,
+    "Duration": 4000000000,
+    "Settle": 250000000,
+    "Net": {
+      "MinDelay": 1000000,
+      "MaxDelay": 15000000,
+      "DropRate": 0.15,
+      "DupRate": 0.02
+    },
+    "Faults": {
+      "Crash": true,
+      "Partition": true,
+      "OneWay": true,
+      "Pause": true,
+      "Slow": true,
+      "Interval": 150000000,
+      "ClockSkew": 0.2,
+      "LeaderBias": 0.5
+    },
+    "Mutations": "accept-stale-term",
+    "Tick": 10000000,
+    "ElectionTick": 10,
+    "SnapshotEvery": 10,
+    "MaxEntriesPerMsg": 64,
+    "CheckQuorum": true,
+    "ClientTimeout": 250000000,
+    "CheckTimeout": 20000000000,
+    "TraceLog": false,
+    "Schedule": {
+      "faults": [
+        {
+          "at": 100842247,
+          "kind": "oneway",
+          "node": 1,
+          "peer": 5,
+          "dur": 816226863
+        },
+        {
+          "at": 257886442,
+          "kind": "slow",
+          "dur": 518534397
+        },
+        {
+          "at": 796481376,
+          "kind": "oneway",
+          "node": 5,
+          "peer": 4,
+          "dur": 500420956
+        },
+        {
+          "at": 888744058,
+          "kind": "pause",
+          "node": 3,
+          "dur": 314013678
+        },
+        {
+          "at": 1087375801,
+          "kind": "partition",
+          "side": [
+            1
+          ],
+          "other": [
+            3,
+            2,
+            5,
+            4
+          ],
+          "dur": 486984612
+        },
+        {
+          "at": 1375324807,
+          "kind": "pause",
+          "node": 5,
+          "dur": 187905858
+        },
+        {
+          "at": 1765093979,
+          "kind": "slow",
+          "dur": 283048096
+        },
+        {
+          "at": 1954629559,
+          "kind": "partition",
+          "side": [
+            4,
+            3,
+            5
+          ],
+          "other": [
+            2,
+            1
+          ],
+          "dur": 249635248
+        },
+        {
+          "at": 2128654177,
+          "kind": "partition",
+          "side": [
+            4,
+            5
+          ],
+          "other": [
+            2,
+            3,
+            1
+          ],
+          "dur": 943203928
+        },
+        {
+          "at": 2314210245,
+          "kind": "slow",
+          "dur": 314698445
+        },
+        {
+          "at": 2484920871,
+          "kind": "partition",
+          "side": [
+            1,
+            2
+          ],
+          "other": [
+            4,
+            3,
+            5
+          ],
+          "dur": 337106261
+        },
+        {
+          "at": 2594332377,
+          "kind": "crash",
+          "node": 3,
+          "dur": 256452342
+        },
+        {
+          "at": 2734027426,
+          "kind": "pause",
+          "node": 5,
+          "dur": 321092896
+        },
+        {
+          "at": 2938322694,
+          "kind": "slow",
+          "dur": 448360167
+        },
+        {
+          "at": 3043350854,
+          "kind": "partition",
+          "side": [
+            4
+          ],
+          "other": [
+            3,
+            1,
+            5,
+            2
+          ],
+          "dur": 393155405
+        },
+        {
+          "at": 3226896784,
+          "kind": "pause",
+          "node": 1,
+          "dur": 154710431
+        },
+        {
+          "at": 3324324245,
+          "kind": "oneway",
+          "node": 1,
+          "peer": 4,
+          "dur": 402906549
+        },
+        {
+          "at": 3452090670,
+          "kind": "oneway",
+          "node": 3,
+          "peer": 4,
+          "dur": 588007292
+        },
+        {
+          "at": 3574634967,
+          "kind": "pause",
+          "node": 4,
+          "dur": 123635410
+        }
+      ]
+    }
+  }
+}

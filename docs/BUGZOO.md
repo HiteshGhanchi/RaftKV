@@ -51,6 +51,32 @@ Swarm reaches its first detection sooner (median 2.5 seeds against 15.5) and cat
 and `skip-fsync` *less* often. This is a single run of each, not repeated, so small differences
 are noise. The default stays as it is; swarm is available with `-swarm`.
 
+
+### Shrunk failures (`raftlab-chaos -shrink-zoo results/bugzoo.json`, `results/shrink.json`)
+
+Each regression seed above was shrunk automatically: delta debugging removes faults from the
+recorded schedule while the same property still fails, then it tries fewer nodes and clients, no
+message loss or duplication, and shorter phases. The result is saved in
+`harness/testdata/schedules/<mutation>.json` and replayed by `TestCorpusSchedulesStillFail`
+(which also checks that each schedule passes with correct code).
+
+| Mutation | Seed | Property | Faults | Nodes | Clients | Simulations |
+|---|---|---|---|---|---|---|
+| commit-prev-term | 151 | LeaderCompleteness | 28 → 18 | 3 → 3 | 4 → 4 | 189 |
+| skip-up-to-date-check | 1 | LeaderCompleteness | 16 → 1 | 5 → 5 | 4 → 1 | 18 |
+| forget-vote | 179 | ElectionSafety | 13 → 6 | 3 → 3 | 4 → 1 | 66 |
+| apply-before-commit | 1 | StateMachineSafety | 19 → 3 | 5 → 5 | 4 → 4 | 37 |
+| stale-read | 35 | Linearizability | 22 → 1 | 3 → 3 | 4 → 3 | 31 |
+| accept-stale-term | 28 | StateMachineSafety | 24 → 19 | 5 → 5 | 4 → 4 | 127 |
+| skip-fsync | 3 | LeaderCompleteness | 63 → 3 | 3 → 3 | 4 → 2 | 44 |
+| no-dedup | 1 | Linearizability | 25 → 0 | 5 → 5 | 4 → 1 | 16 |
+
+`no-dedup` needs no faults at all: message loss and duplication alone make a retried append take
+effect twice. The two rarest bugs (`commit-prev-term`, `accept-stale-term`) shrink least: removing
+almost any fault changes the timing they depend on. The shrunk runs can be longer than the
+originals, because with fewer faults the bug surfaces later. Open one in the debugger with
+`raftlab-debug -repro harness/testdata/schedules/<mutation>.json`.
+
 ---
 
 ### skip-up-to-date-check

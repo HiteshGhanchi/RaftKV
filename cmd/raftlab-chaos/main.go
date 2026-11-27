@@ -26,19 +26,22 @@ import (
 
 func main() {
 	var (
-		seed     = flag.Uint64("seed", 0, "run a single seed")
-		start    = flag.Uint64("start", 1, "first seed of a sweep")
-		seeds    = flag.Uint64("seeds", 100, "number of seeds in a sweep")
-		mut      = flag.String("mutation", "none", "comma-separated bug zoo mutations to enable")
-		workers  = flag.Int("workers", 0, "parallel runs (default: number of CPUs)")
-		verbose  = flag.Bool("v", false, "single seed: print the full event trace")
-		viz      = flag.String("viz", "", "single seed: write Porcupine's HTML history view here")
-		bugzoo   = flag.Bool("bugzoo", false, "run every mutation over the sweep and report detection")
-		out      = flag.String("out", "", "write results as JSON to this file")
-		stopFail = flag.Bool("stop", false, "sweep: stop at the first failing seed")
-		traceOut = flag.String("trace", "", "single seed: write the structured trace (JSON Lines) to this file")
-		overhead = flag.Bool("overhead", false, "measure tracing overhead over the sweep's seeds (one worker)")
-		swarm    = flag.Bool("swarm", false, "swarm testing: each seed also disables a random subset of fault kinds")
+		seed      = flag.Uint64("seed", 0, "run a single seed")
+		start     = flag.Uint64("start", 1, "first seed of a sweep")
+		seeds     = flag.Uint64("seeds", 100, "number of seeds in a sweep")
+		mut       = flag.String("mutation", "none", "comma-separated bug zoo mutations to enable")
+		workers   = flag.Int("workers", 0, "parallel runs (default: number of CPUs)")
+		verbose   = flag.Bool("v", false, "single seed: print the full event trace")
+		viz       = flag.String("viz", "", "single seed: write Porcupine's HTML history view here")
+		bugzoo    = flag.Bool("bugzoo", false, "run every mutation over the sweep and report detection")
+		out       = flag.String("out", "", "write results as JSON to this file")
+		stopFail  = flag.Bool("stop", false, "sweep: stop at the first failing seed")
+		traceOut  = flag.String("trace", "", "single seed: write the structured trace (JSON Lines) to this file")
+		overhead  = flag.Bool("overhead", false, "measure tracing overhead over the sweep's seeds (one worker)")
+		swarm     = flag.Bool("swarm", false, "swarm testing: each seed also disables a random subset of fault kinds")
+		shrink    = flag.Bool("shrink", false, "single seed: shrink the failing run and print its minimal schedule")
+		save      = flag.String("save", "", "with -shrink: write the shrunk run as a repro file")
+		shrinkZoo = flag.String("shrink-zoo", "", "shrink every bug-zoo regression seed from this bugzoo.json into harness/testdata/schedules")
 	)
 	flag.Parse()
 
@@ -60,6 +63,28 @@ func main() {
 	}
 
 	switch {
+	case *shrinkZoo != "":
+		shrinkAll(*shrinkZoo, *out)
+
+	case *shrink:
+		o := optsFor(muts)(*seed)
+		rep, st, err := harness.Shrink(o, 0)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		fmt.Printf("property: %s (%d simulations)\nbefore: %s\nafter:  %s\n", st.Property, st.Runs, st.Before, st.After)
+		for _, f := range rep.Opts.Schedule.Faults {
+			fmt.Printf("  %s\n", f)
+		}
+		if *save != "" {
+			rep.Note = fmt.Sprintf("shrunk from seed %d, mutations %s", *seed, muts)
+			if err := rep.Save(*save); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+		}
+
 	case *seed != 0:
 		o := optsFor(muts)(*seed)
 		o.TraceLog = *verbose
@@ -242,6 +267,58 @@ func measureOverhead(start, n uint64, out string) {
 	if !same {
 		os.Exit(1)
 	}
+}
+
+// shrinkAll shrinks the first failing seed of every mutation in a bug-zoo
+// results file and saves each as a repro in harness/testdata/schedules.
+func shrinkAll(zooPath, out string) {
+	b, err := os.ReadFile(zooPath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	var zoo struct{ Rows []zooRow }
+	if err := json.Unmarshal(b, &zoo); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	type row struct {
+		Mutation string
+		Seed     uint64
+		File     string
+		harness.ShrinkStats
+	}
+	var rows []row
+	for _, z := range zoo.Rows {
+		m, err := mutation.Parse(z.Mutation)
+		if err != nil || z.FirstSeed == 0 {
+			fmt.Fprintf(os.Stderr, "%s: skipped (%v)\n", z.Mutation, err)
+			continue
+		}
+		o := harness.DefaultOptions(z.FirstSeed)
+		o.Mutations = m
+		t0 := time.Now()
+		rep, st, err := harness.Shrink(o, 0)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s seed %d: %v\n", z.Mutation, z.FirstSeed, err)
+			os.Exit(1)
+		}
+		rep.Note = fmt.Sprintf("shrunk from bug-zoo seed %d with %s", z.FirstSeed, z.Mutation)
+		file := fmt.Sprintf("harness/testdata/schedules/%s.json", z.Mutation)
+		if err := os.MkdirAll("harness/testdata/schedules", 0o755); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		if err := rep.Save(file); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		rows = append(rows, row{z.Mutation, z.FirstSeed, file, st})
+		fmt.Printf("%-22s seed %-5d %-20s faults %2d -> %-2d nodes %d -> %d clients %d -> %d steps %5d -> %-5d (%d sims, %.1fs)\n",
+			z.Mutation, z.FirstSeed, st.Property, st.Before.Faults, st.After.Faults, st.Before.Nodes, st.After.Nodes,
+			st.Before.Clients, st.After.Clients, st.Before.Steps, st.After.Steps, st.Runs, time.Since(t0).Seconds())
+	}
+	writeJSON(out, map[string]any{"source": zooPath, "rows": rows})
 }
 
 func trim(s string, n int) string {

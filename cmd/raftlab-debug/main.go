@@ -4,6 +4,7 @@
 //	raftlab-debug -seed 151 -mutation commit-prev-term -c "break violation; continue; nodes"
 //	raftlab-debug -repro testdata/schedules/commit-prev-term.json
 //	raftlab-debug -measure-back -seeds 200 -out results/debug-back.json
+//	raftlab-debug -seed 151 -diff commit-prev-term     # first divergence: correct vs mutated
 //
 // Type "help" at the prompt for the commands.
 package main
@@ -34,6 +35,8 @@ func main() {
 		measure = flag.Bool("measure-back", false, "measure how long 'back 1' takes at 10%, 50% and 90% of runs")
 		seeds   = flag.Uint64("seeds", 200, "with -measure-back: number of seeds")
 		out     = flag.String("out", "", "with -measure-back: write results as JSON here")
+		diff    = flag.String("diff", "", "compare the run with the same seed run with these mutations instead, and show the first divergence")
+		context = flag.Int("context", 8, "with -diff: events of context on each side")
 	)
 	flag.Parse()
 
@@ -62,6 +65,17 @@ func main() {
 			o = harness.DefaultOptions(*seed)
 		}
 		o.Mutations = m
+	}
+	if *diff != "" {
+		m, err := mutation.Parse(*diff)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+		b := o
+		b.Mutations = m
+		debug.Diff(o, b, *context).Print(os.Stdout, "A (mutations="+o.Mutations.String()+")", "B (mutations="+m.String()+")")
+		return
 	}
 	s := debug.Open(o)
 	fmt.Printf("raftlab-debug: seed %d, %d nodes, mutations=%s, %d scheduled faults. Type help.\n",
