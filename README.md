@@ -280,6 +280,7 @@ Ongaro's `raft.tla`.
 | [`docs/DEBUGGER.md`](docs/DEBUGGER.md) | The replay debugger, shrinking and diffs, with a walkthrough of the Figure 8 bug |
 | [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) | Benchmark method, raw results and caveats |
 | [`docs/WRITEUP.md`](docs/WRITEUP.md) | One-page summary / blog draft |
+| [`docs/JOURNAL.md`](docs/JOURNAL.md) | Developer journal: each part as it was built, what went wrong and how it was fixed |
 | [`lessons/teaching.md`](lessons/teaching.md) | Distributed-systems notes for someone new to the topic |
 
 ## Licence
