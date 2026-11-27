@@ -1,0 +1,33 @@
+{
+  "cpus": 16,
+  "go": "go1.22.2",
+  "goarch": "amd64",
+  "goos": "linux",
+  "hashesIdentical": true,
+  "modes": [
+    {
+      "Name": "no sink",
+      "Seconds": 4.395244841,
+      "SeedsPerSec": 113.75930536016298,
+      "Events": 0,
+      "Slowdown": 1
+    },
+    {
+      "Name": "counting sink",
+      "Seconds": 4.504322574,
+      "SeedsPerSec": 111.0044833125666,
+      "Events": 8455969,
+      "Slowdown": 1.0248172142726826
+    },
+    {
+      "Name": "JSON Lines sink (io.Discard)",
+      "Seconds": 8.568158928,
+      "SeedsPerSec": 58.35559356468556,
+      "Events": 8455969,
+      "Slowdown": 1.9494156157295175
+    }
+  ],
+  "seeds": 500,
+  "start": 1,
+  "workers": 1
+}

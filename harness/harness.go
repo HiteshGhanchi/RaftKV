@@ -60,6 +60,10 @@ type Options struct {
 	ClientTimeout    time.Duration
 	CheckTimeout     time.Duration
 	TraceLog         bool
+
+	// Sink, if set, receives every trace event as it happens. Observing a
+	// run never changes it.
+	Sink func(sim.Event) `json:"-"`
 }
 
 // DefaultOptions is the configuration used by the chaos runner and CI. The
@@ -182,6 +186,9 @@ func Run(opt Options) Result {
 	if opt.TraceLog {
 		c.w.EnableTraceLog()
 	}
+	if opt.Sink != nil {
+		c.w.SetSink(opt.Sink)
+	}
 	c.frng, c.crng, c.prng = c.w.Fork(), c.w.Fork(), c.w.Fork()
 	c.net = sim.NewNetwork(c.w, opt.Net, func(m raft.Message) string { return m.String() })
 	for i := 1; i <= opt.Nodes; i++ {
@@ -197,11 +204,11 @@ func Run(opt Options) Result {
 	c.end = opt.Duration + opt.Settle
 	c.stopClients = opt.Duration + opt.Settle/2
 	c.scheduleFaults()
-	c.w.After(opt.Duration, "heal", c.healAll)
+	c.w.Schedule(opt.Duration, sim.Event{Kind: "heal-all"}, c.healAll)
 	for i := range opt.Clients {
 		c.startClient(i)
 	}
-	c.w.After(opt.Tick*5, "check", c.periodicCheck)
+	c.w.Schedule(opt.Tick*5, sim.Event{Kind: "check"}, c.periodicCheck)
 
 	c.w.RunUntilOr(c.end, func() bool { return c.failed })
 
@@ -236,6 +243,7 @@ func (c *cluster) fail(name, format string, args ...any) {
 	c.failed = true
 	c.res.Violation = name + ": " + fmt.Sprintf(format, args...)
 	c.res.ViolationAt = c.w.Now()
+	c.w.Emit(sim.Event{Kind: "violation", Detail: c.res.Violation})
 }
 
 // guard runs peer code and turns a panic into a violation.
@@ -281,7 +289,8 @@ func (c *cluster) start(id raft.NodeID) {
 		}
 		c.peers[id] = p
 		c.net.SetDown(id, false)
-		c.w.Note("start %d", id)
+		st := p.Status()
+		c.w.Emit(sim.Event{Kind: "start", Node: id, Attrs: []sim.Attr{sim.A("term", int64(st.Term)), sim.A("last", int64(st.LastIndex))}})
 	})
 }
 
@@ -291,10 +300,21 @@ func (c *cluster) crash(id raft.NodeID) {
 	}
 	c.peers[id] = nil
 	delete(c.leaderLast, id)
-	c.disks[id].Crash()
+	loss := c.disks[id].Crash()
 	c.net.SetDown(id, true)
 	c.res.Crashes++
-	c.w.Note("crash %d", id)
+	detail := ""
+	for _, l := range loss {
+		state := "lost"
+		switch {
+		case l.Kept == l.Unsynced:
+			state = "kept"
+		case l.Kept > 0:
+			state = "torn"
+		}
+		detail += fmt.Sprintf("%s %s %d/%d unsynced bytes kept; ", l.File, state, l.Kept, l.Unsynced)
+	}
+	c.w.Emit(sim.Event{Kind: "crash", Node: id, Detail: detail})
 }
 
 func (c *cluster) paused(id raft.NodeID) bool { return c.pause[id] > c.w.Now() }
@@ -312,7 +332,7 @@ func (c *cluster) deliverFunc(id raft.NodeID) func(raft.NodeID, raft.Message) {
 		if c.paused(id) {
 			// A process waking from a pause drains its sockets in no
 			// particular order, so queued input gets a little jitter.
-			c.w.After(c.pause[id]-c.w.Now()+c.jitter(), "deferred deliver", func() { deliver(from, m) })
+			c.w.Schedule(c.pause[id]-c.w.Now()+c.jitter(), sim.Event{Kind: "deliver-deferred", Node: id, Peer: from, Detail: m.String()}, func() { deliver(from, m) })
 			return
 		}
 		c.guard(id, func() { c.peers[id].Receive(m) })
@@ -327,9 +347,9 @@ func (c *cluster) scheduleTick(id raft.NodeID) {
 		if p := c.peers[id]; p != nil && !c.paused(id) {
 			c.guard(id, p.Tick)
 		}
-		c.w.After(period, fmt.Sprintf("tick %d", id), tick)
+		c.w.Schedule(period, sim.Event{Kind: "tick", Node: id}, tick)
 	}
-	c.w.After(time.Duration(c.frng.Int64N(int64(period))), fmt.Sprintf("tick %d", id), tick)
+	c.w.Schedule(time.Duration(c.frng.Int64N(int64(period))), sim.Event{Kind: "tick", Node: id}, tick)
 }
 
 // ------------------------------------------------------------- faults
@@ -365,9 +385,9 @@ func (c *cluster) scheduleFaults() {
 			return
 		}
 		kinds[c.frng.IntN(len(kinds))]()
-		c.w.After(c.between(f.Interval/2, f.Interval*3/2), "fault", next)
+		c.w.Schedule(c.between(f.Interval/2, f.Interval*3/2), sim.Event{Kind: "fault"}, next)
 	}
-	c.w.After(c.between(f.Interval/2, f.Interval*3/2), "fault", next)
+	c.w.Schedule(c.between(f.Interval/2, f.Interval*3/2), sim.Event{Kind: "fault"}, next)
 }
 
 func (c *cluster) randomNode() raft.NodeID { return c.ids[c.frng.IntN(len(c.ids))] }
@@ -398,7 +418,7 @@ func (c *cluster) faultCrash() {
 		return
 	}
 	c.crash(id)
-	c.w.After(c.between(5*time.Millisecond, 800*time.Millisecond), fmt.Sprintf("restart %d", id), func() {
+	c.w.Schedule(c.between(5*time.Millisecond, 800*time.Millisecond), sim.Event{Kind: "restart", Node: id}, func() {
 		if c.peers[id] == nil && !c.failed {
 			c.start(id)
 		}
@@ -417,8 +437,8 @@ func (c *cluster) faultPartition() {
 	c.net.Heal()
 	c.net.Partition(ids[:k], ids[k:])
 	c.res.Partitions++
-	c.w.Note("partition %v | %v", ids[:k], ids[k:])
-	c.w.After(c.between(100*time.Millisecond, time.Second), "heal partition", c.net.Heal)
+	c.w.Emit(sim.Event{Kind: "partition", Detail: fmt.Sprintf("%v | %v", ids[:k], ids[k:])})
+	c.w.Schedule(c.between(100*time.Millisecond, time.Second), sim.Event{Kind: "heal-partition"}, c.net.Heal)
 }
 
 func (c *cluster) faultOneWay() {
@@ -428,8 +448,8 @@ func (c *cluster) faultOneWay() {
 	}
 	c.net.Block(a, b)
 	c.res.OneWayBlocks++
-	c.w.Note("block %d->%d", a, b)
-	c.w.After(c.between(100*time.Millisecond, time.Second), "unblock", func() { c.net.Unblock(a, b) })
+	c.w.Emit(sim.Event{Kind: "block", Node: a, Peer: b})
+	c.w.Schedule(c.between(100*time.Millisecond, time.Second), sim.Event{Kind: "unblock", Node: a, Peer: b}, func() { c.net.Unblock(a, b) })
 }
 
 func (c *cluster) faultSlow() {
@@ -437,15 +457,15 @@ func (c *cluster) faultSlow() {
 	slow := normal
 	slow.MaxDelay = 250 * time.Millisecond
 	c.net.SetConfig(slow)
-	c.w.Note("slow network")
-	c.w.After(c.between(100*time.Millisecond, 600*time.Millisecond), "network normal", func() { c.net.SetConfig(normal) })
+	c.w.Emit(sim.Event{Kind: "slow"})
+	c.w.Schedule(c.between(100*time.Millisecond, 600*time.Millisecond), sim.Event{Kind: "net-normal"}, func() { c.net.SetConfig(normal) })
 }
 
 func (c *cluster) faultPause() {
 	id := c.target()
 	c.pause[id] = c.w.Now() + c.between(30*time.Millisecond, 400*time.Millisecond)
 	c.res.Pauses++
-	c.w.Note("pause %d until %d", id, c.pause[id])
+	c.w.Emit(sim.Event{Kind: "pause", Node: id, Attrs: []sim.Attr{sim.A("until", int64(c.pause[id]))}})
 }
 
 func (c *cluster) healAll() {
@@ -457,7 +477,7 @@ func (c *cluster) healAll() {
 			c.start(id)
 		}
 	}
-	c.w.Note("heal all")
+	c.w.Emit(sim.Event{Kind: "healed"})
 }
 
 // ------------------------------------------------------------- invariants
@@ -475,6 +495,7 @@ func hashData(e raft.Entry) entryKey {
 // committed: a node only applies an entry after hearing about the commit from
 // a leader whose term is at most the node's own current term.
 func (c *cluster) Applied(id raft.NodeID, term uint64, e raft.Entry) {
+	c.w.Emit(sim.Event{Kind: "apply", Node: id, Attrs: []sim.Attr{sim.A("index", int64(e.Index)), sim.A("term", int64(e.Term))}})
 	k := hashData(e)
 	if prev, ok := c.committed[e.Index]; ok {
 		if prev.entryKey != k {
@@ -491,7 +512,9 @@ func (c *cluster) Applied(id raft.NodeID, term uint64, e raft.Entry) {
 // RoleChanged checks Election Safety (at most one leader per term) and Leader
 // Completeness (a leader has every entry committed in an earlier term).
 func (c *cluster) RoleChanged(id raft.NodeID, st raft.Status) {
-	c.w.Note("role %d %s term %d", id, st.State, st.Term)
+	c.w.Emit(sim.Event{Kind: "role", Node: id, Detail: st.State.String(), Attrs: []sim.Attr{
+		sim.A("term", int64(st.Term)), sim.A("vote", int64(st.Vote)), sim.A("lead", int64(st.Lead)),
+		sim.A("commit", int64(st.Commit)), sim.A("last", int64(st.LastIndex))}})
 	if st.State != raft.Leader {
 		delete(c.leaderLast, id)
 		return
@@ -530,7 +553,7 @@ func (c *cluster) periodicCheck() {
 	if c.failed {
 		return
 	}
-	defer c.w.After(c.opt.Tick*5, "check", c.periodicCheck)
+	defer c.w.Schedule(c.opt.Tick*5, sim.Event{Kind: "check"}, c.periodicCheck)
 	type view struct {
 		id    raft.NodeID
 		snap  uint64

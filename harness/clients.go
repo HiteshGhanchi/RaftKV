@@ -9,6 +9,7 @@ import (
 	"raftlab/kv"
 	"raftlab/peer"
 	"raftlab/raft"
+	"raftlab/sim"
 )
 
 // client behaves like a real client library: one operation at a time, a
@@ -31,7 +32,7 @@ type client struct {
 func (c *cluster) startClient(i int) {
 	cl := &client{c: c, idx: i, cid: uint64(i + 1), guess: c.ids[i%len(c.ids)]}
 	c.clients = append(c.clients, cl)
-	c.w.After(time.Duration(c.crng.IntN(10))*time.Millisecond, fmt.Sprintf("client %d start", i), cl.next)
+	c.w.Schedule(time.Duration(c.crng.IntN(10))*time.Millisecond, sim.Event{Kind: "client-next", Attrs: []sim.Attr{sim.A("client", int64(i))}}, cl.next)
 }
 
 // next starts a new operation.
@@ -56,16 +57,17 @@ func (cl *client) next() {
 	cl.busy = true
 	cl.called = c.w.Now()
 	c.res.Ops++
+	c.w.Emit(sim.Event{Kind: "client-call", Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}, Detail: cl.in.String()})
 	cl.try()
 }
 
 // clientHop is one direction of the client <-> server link: a short delay,
 // and the same loss rate as the cluster network.
-func (c *cluster) clientHop(label string, fn func()) {
+func (c *cluster) clientHop(ev sim.Event, fn func()) {
 	if c.crng.Float64() < c.net.Config().DropRate {
 		return
 	}
-	c.w.After(time.Duration(1+c.crng.IntN(5))*time.Millisecond, label, fn)
+	c.w.Schedule(time.Duration(1+c.crng.IntN(5))*time.Millisecond, ev, fn)
 }
 
 // try sends one attempt of the current operation to the guessed leader.
@@ -74,7 +76,7 @@ func (cl *client) try() {
 	cl.attempt++
 	attempt := cl.attempt
 	target := cl.guess
-	c.w.After(c.opt.ClientTimeout, fmt.Sprintf("client %d timeout", cl.idx), func() {
+	c.w.Schedule(c.opt.ClientTimeout, sim.Event{Kind: "client-timeout", Node: target, Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}}, func() {
 		if cl.busy && cl.attempt == attempt {
 			cl.guess = cl.nextNode(target)
 			cl.try()
@@ -88,11 +90,11 @@ func (cl *client) try() {
 		}
 		if c.paused(target) {
 			// A paused process handles queued requests when it wakes up.
-			c.w.After(c.pause[target]-c.w.Now()+c.jitter(), "deferred request", arrive)
+			c.w.Schedule(c.pause[target]-c.w.Now()+c.jitter(), sim.Event{Kind: "client-request-deferred", Node: target, Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}}, arrive)
 			return
 		}
 		reply := func(r peer.Result) {
-			c.clientHop(fmt.Sprintf("%d -> client %d", target, cl.idx), func() { cl.onReply(attempt, target, r) })
+			c.clientHop(sim.Event{Kind: "client-reply", Node: target, Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}}, func() { cl.onReply(attempt, target, r) })
 		}
 		c.guard(target, func() {
 			if cl.in.Kind == check.Get {
@@ -102,7 +104,7 @@ func (cl *client) try() {
 			}
 		})
 	}
-	c.clientHop(fmt.Sprintf("client %d -> %d", cl.idx, target), arrive)
+	c.clientHop(sim.Event{Kind: "client-request", Node: target, Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}, Detail: cl.in.String()}, arrive)
 }
 
 func (cl *client) nextNode(id raft.NodeID) raft.NodeID {
@@ -128,7 +130,7 @@ func (cl *client) onReply(attempt uint64, from raft.NodeID, r peer.Result) {
 			cl.guess = cl.nextNode(from)
 		}
 		cl.attempt++ // retire this attempt's timeout
-		c.w.After(10*time.Millisecond, fmt.Sprintf("client %d retry", cl.idx), cl.try)
+		c.w.Schedule(10*time.Millisecond, sim.Event{Kind: "client-retry", Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}}, cl.try)
 		return
 	}
 	cl.guess = from
@@ -140,7 +142,8 @@ func (cl *client) onReply(attempt uint64, from raft.NodeID, r peer.Result) {
 	}
 	c.hist.Add(check.Op{Client: cl.idx, Input: cl.in, Output: out, Call: cl.called, Return: c.w.Now()})
 	c.res.Completed++
-	c.w.After(time.Duration(c.crng.IntN(10))*time.Millisecond, fmt.Sprintf("client %d next", cl.idx), cl.next)
+	c.w.Emit(sim.Event{Kind: "client-ok", Node: from, Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}, Detail: cl.in.String() + " -> " + fmt.Sprintf("%q", out.Value)})
+	c.w.Schedule(time.Duration(c.crng.IntN(10))*time.Millisecond, sim.Event{Kind: "client-next", Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}}, cl.next)
 }
 
 // finishClients records operations still in flight at the end as unknown.

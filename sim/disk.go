@@ -34,17 +34,28 @@ var ErrStaleHandle = errors.New("sim: file handle from before a crash")
 // Crash throws away unsynced data. For every file a random prefix of its
 // unsynced bytes survives (possibly none, possibly all), which models lost
 // and torn writes. Handles opened before the crash become unusable.
-func (d *Disk) Crash() {
+func (d *Disk) Crash() []CrashLoss {
 	d.gen++
+	var lost []CrashLoss
 	for _, name := range sortedKeys(d.files) {
 		f := d.files[name]
 		keep := 0
 		if len(f.pending) > 0 {
 			keep = d.rng.IntN(len(f.pending) + 1)
+			lost = append(lost, CrashLoss{File: name, Unsynced: len(f.pending), Kept: keep})
 		}
 		f.durable = append(f.durable, f.pending[:keep]...)
 		f.pending = nil
 	}
+	return lost
+}
+
+// CrashLoss reports what a crash did to one file's unsynced bytes: Kept of
+// Unsynced survived. 0 < Kept < Unsynced is a torn write.
+type CrashLoss struct {
+	File     string
+	Unsynced int
+	Kept     int
 }
 
 // OpenAppend implements vfs.FS.

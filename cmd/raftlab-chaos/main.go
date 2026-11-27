@@ -4,19 +4,24 @@
 //	raftlab-chaos -seed 42 -v                 # replay one seed and print its trace
 //	raftlab-chaos -seeds 2000 -mutation stale-read
 //	raftlab-chaos -bugzoo -seeds 2000 -out results/bugzoo.json
+//	raftlab-chaos -seed 42 -trace run.jsonl   # structured trace, one JSON event per line
+//	raftlab-chaos -overhead -seeds 500 -out results/trace-overhead.json
 package main
 
 import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"runtime"
 	"slices"
 	"time"
 
 	"raftlab/check"
 	"raftlab/harness"
 	"raftlab/mutation"
+	"raftlab/sim"
 )
 
 func main() {
@@ -31,6 +36,8 @@ func main() {
 		bugzoo   = flag.Bool("bugzoo", false, "run every mutation over the sweep and report detection")
 		out      = flag.String("out", "", "write results as JSON to this file")
 		stopFail = flag.Bool("stop", false, "sweep: stop at the first failing seed")
+		traceOut = flag.String("trace", "", "single seed: write the structured trace (JSON Lines) to this file")
+		overhead = flag.Bool("overhead", false, "measure tracing overhead over the sweep's seeds (one worker)")
 	)
 	flag.Parse()
 
@@ -51,7 +58,23 @@ func main() {
 	case *seed != 0:
 		o := optsFor(muts)(*seed)
 		o.TraceLog = *verbose
+		var j *sim.JSONL
+		if *traceOut != "" {
+			f, err := os.Create(*traceOut)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(2)
+			}
+			defer f.Close()
+			j = sim.NewJSONL(f, map[string]any{"seed": *seed, "mutations": muts.String(), "nodes": o.Nodes})
+			o.Sink = j.Sink()
+		}
 		r := harness.Run(o)
+		if j != nil {
+			if err := j.Close(); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
+		}
 		if *verbose {
 			for _, line := range r.TraceLog {
 				fmt.Println(line)
@@ -69,6 +92,9 @@ func main() {
 		if r.Failed() {
 			os.Exit(1)
 		}
+
+	case *overhead:
+		measureOverhead(*start, *seeds, *out)
 
 	case *bugzoo:
 		runBugZoo(*start, *seeds, *workers, *out, optsFor)
@@ -159,6 +185,54 @@ func runBugZoo(start, n uint64, workers int, out string, optsFor func(mutation.S
 	}
 	fmt.Printf("%d/%d injected bugs caught; median seeds to first detection = %.1f\n", caught, len(rows), median)
 	writeJSON(out, map[string]any{"start": start, "seeds": n, "caught": caught, "total": len(rows), "medianSeedsToDetect": median, "rows": rows})
+}
+
+// measureOverhead runs the same seeds three times on one goroutine: with no
+// trace sink, with a sink that only counts events, and with a JSON Lines sink
+// writing to io.Discard. All three must give identical trace hashes.
+func measureOverhead(start, n uint64, out string) {
+	type mode struct {
+		Name        string
+		Seconds     float64
+		SeedsPerSec float64
+		Events      uint64
+		Slowdown    float64
+	}
+	var modes []mode
+	var hashes [3][]uint64
+	for i, name := range []string{"no sink", "counting sink", "JSON Lines sink (io.Discard)"} {
+		var events uint64
+		t0 := time.Now()
+		for s := start; s < start+n; s++ {
+			o := harness.DefaultOptions(s)
+			var j *sim.JSONL
+			switch i {
+			case 1:
+				o.Sink = func(sim.Event) { events++ }
+			case 2:
+				j = sim.NewJSONL(io.Discard, nil)
+				sink := j.Sink()
+				o.Sink = func(e sim.Event) { events++; sink(e) }
+			}
+			hashes[i] = append(hashes[i], harness.Run(o).TraceHash)
+			if j != nil {
+				j.Close()
+			}
+		}
+		el := time.Since(t0).Seconds()
+		modes = append(modes, mode{Name: name, Seconds: el, SeedsPerSec: float64(n) / el, Events: events})
+	}
+	for i := range modes {
+		modes[i].Slowdown = modes[i].Seconds / modes[0].Seconds
+		fmt.Printf("%-30s %7.2fs  %6.1f seeds/s  %10d events  x%.2f\n", modes[i].Name, modes[i].Seconds, modes[i].SeedsPerSec, modes[i].Events, modes[i].Slowdown)
+	}
+	same := slices.Equal(hashes[0], hashes[1]) && slices.Equal(hashes[0], hashes[2])
+	fmt.Printf("trace hashes identical across modes: %v\n", same)
+	writeJSON(out, map[string]any{"start": start, "seeds": n, "workers": 1, "goos": runtime.GOOS, "goarch": runtime.GOARCH,
+		"go": runtime.Version(), "cpus": runtime.NumCPU(), "hashesIdentical": same, "modes": modes})
+	if !same {
+		os.Exit(1)
+	}
 }
 
 func trim(s string, n int) string {

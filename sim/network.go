@@ -1,8 +1,8 @@
 package sim
 
 import (
-	"fmt"
 	"math/rand/v2"
+	"slices"
 	"time"
 )
 
@@ -34,6 +34,19 @@ type Network[M any] struct {
 	down     map[NodeID]bool
 	describe func(M) string
 	Stats    NetStats
+
+	nextID   uint64
+	inflight map[uint64]InFlight
+}
+
+// InFlight describes a message that has been sent and not yet delivered or
+// dropped.
+type InFlight struct {
+	ID       uint64
+	From, To NodeID
+	SentAt   time.Duration
+	ArriveAt time.Duration
+	Desc     string
 }
 
 // NewNetwork creates a network driven by w. describe, if not nil, turns a
@@ -50,7 +63,30 @@ func NewNetwork[M any](w *World, cfg NetConfig, describe func(M) string) *Networ
 		blocked:  map[[2]NodeID]bool{},
 		down:     map[NodeID]bool{},
 		describe: describe,
+		inflight: map[uint64]InFlight{},
 	}
+}
+
+// InFlight lists the messages currently in flight, ordered by arrival time
+// (ties by send order).
+func (n *Network[M]) InFlight() []InFlight {
+	out := make([]InFlight, 0, len(n.inflight))
+	for _, f := range n.inflight {
+		out = append(out, f)
+	}
+	slices.SortFunc(out, func(a, b InFlight) int {
+		if a.ArriveAt != b.ArriveAt {
+			if a.ArriveAt < b.ArriveAt {
+				return -1
+			}
+			return 1
+		}
+		if a.ID < b.ID {
+			return -1
+		}
+		return 1
+	})
+	return out
 }
 
 // Register sets the function that receives messages addressed to id.
@@ -108,9 +144,14 @@ func (n *Network[M]) Send(from, to NodeID, m M) {
 	if n.describe != nil {
 		desc = n.describe(m)
 	}
-	if n.Blocked(from, to) || chance(n.rng, n.cfg.DropRate) {
+	if n.Blocked(from, to) {
 		n.Stats.Dropped++
-		n.w.Note("drop %d->%d %s", from, to, desc)
+		n.w.Emit(Event{Kind: "drop", Node: from, Peer: to, Detail: "blocked: " + desc})
+		return
+	}
+	if chance(n.rng, n.cfg.DropRate) {
+		n.Stats.Dropped++
+		n.w.Emit(Event{Kind: "drop", Node: from, Peer: to, Detail: "lost: " + desc})
 		return
 	}
 	copies := 1
@@ -118,16 +159,25 @@ func (n *Network[M]) Send(from, to NodeID, m M) {
 		copies = 2
 		n.Stats.Duplicated++
 	}
-	for range copies {
+	for i := range copies {
 		delay := n.cfg.MinDelay
 		if span := n.cfg.MaxDelay - n.cfg.MinDelay; span > 0 {
 			delay += time.Duration(n.rng.Int64N(int64(span) + 1))
 		}
-		label := fmt.Sprintf("deliver %d->%d %s", from, to, desc)
-		n.w.After(delay, label, func() {
+		n.nextID++
+		id := n.nextID
+		kind := "send"
+		if i > 0 {
+			kind = "dup"
+		}
+		n.w.Emit(Event{Kind: kind, Node: from, Peer: to, Attrs: []Attr{A("msg", int64(id)), A("delay", int64(delay))}, Detail: desc})
+		n.inflight[id] = InFlight{ID: id, From: from, To: to, SentAt: n.w.Now(), ArriveAt: n.w.Now() + delay, Desc: desc}
+		n.w.Schedule(delay, Event{Kind: "deliver", Node: to, Peer: from, Attrs: []Attr{A("msg", int64(id))}, Detail: desc}, func() {
+			delete(n.inflight, id)
 			h := n.handlers[to]
 			if h == nil || n.down[to] || n.Blocked(from, to) {
 				n.Stats.Dropped++
+				n.w.Emit(Event{Kind: "drop", Node: from, Peer: to, Attrs: []Attr{A("msg", int64(id))}, Detail: "at arrival: " + desc})
 				return
 			}
 			n.Stats.Delivered++

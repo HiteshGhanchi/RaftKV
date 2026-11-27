@@ -171,7 +171,7 @@ approval.
 
 **V1. Time travel.** (a) In-memory checkpoints. (b) Deterministic re-execution to step k − n.
 **Chosen: (b).** The simulator's event queue holds Go closures, which cannot be deep-copied, and a
-full run takes about 50 ms native. To be confirmed by measurement (`results/debug-back.json`);
+full run takes about 10 ms native and about 50 ms in wasm under Node (spike, re-measured 2026-11-27). To be confirmed by measurement (`results/debug-back.json`);
 checkpoints are reconsidered only if `Back` p99 exceeds 200 ms.
 
 **V2. Breakpoints.** (a) A fixed set of predicates combined with `and`. (b) An embedded expression

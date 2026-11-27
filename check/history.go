@@ -30,6 +30,14 @@ type Input struct {
 	Value string
 }
 
+// String renders the input as get(k), put(k, "v") or append(k, "v").
+func (in Input) String() string {
+	if in.Kind == Get {
+		return fmt.Sprintf("get(%s)", in.Key)
+	}
+	return fmt.Sprintf("%s(%s, %q)", in.Kind, in.Key, in.Value)
+}
+
 // Output is what it got back. Unknown means the client gave up without an
 // answer: the operation may or may not have taken effect.
 type Output struct {

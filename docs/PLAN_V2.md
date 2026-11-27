@@ -43,8 +43,8 @@ Method: a throwaway program in a copy of the repo (outside the repo, not committ
 | Compiles to wasm (raft, peer, kv, storage, sim, harness, check, mutation, **Porcupine v1.3.1**) | **Yes**, no code changes |
 | wasm size, standard Go toolchain | 3,000,530 bytes raw, 849,825 bytes gzip -9 |
 | Native vs wasm output (trace hash, step count, violation, linearizability verdict) for 50 seeds + 3 mutation seeds | **Byte-identical** |
-| Speed, native, one goroutine, i5-12500H | 50 seeds in 2.51 s (19.9 seeds/s) |
-| Speed, wasm under Node | 50 seeds in 4.38 s (11.4 seeds/s), about 1.75x slower than native |
+| Speed, native, one goroutine, i5-12500H | First run: 50 seeds in 2.51 s (19.9 seeds/s). **Re-measured on an idle machine the same day: 50 seeds in about 0.47 s (106–108 seeds/s).** The first figure was taken while the machine was slowed by something else and should be ignored. |
+| Speed, wasm under Node | First run: 4.38 s (11.4 seeds/s). Re-measured: about 2.40 s (20.8 seeds/s), so wasm is **about 5x slower** than native, not 1.75x as the first run suggested |
 | Speed in a browser | **Not measured** (UNVERIFIED). Will be measured in P2 with Playwright. |
 | TinyGo | **Not tested**: not installed here. Standard Go already fits the budget proposed below, so TinyGo is only an optimisation for later. |
 
@@ -124,8 +124,8 @@ everything P1 builds is reused in P2 for free, and the CLI and the site can neve
   closures that capture peers, disks and RNGs, and Go cannot copy closures. Checkpointing would
   mean rewriting the simulator so all state is plain data, a large refactor that touches the
   determinism core.
-- Re-execution is cheap: a full default run takes about 50 ms native and about 90 ms in wasm (spike
-  figures above). `Back(n)` re-runs to step k − n. I will still measure it (`results/debug-back.json`:
+- Re-execution is cheap: a full default run takes about 10 ms native and about 50 ms in wasm (spike
+  figures above, re-measured). `Back(n)` re-runs to step k − n. I will still measure it (`results/debug-back.json`:
   latency of `Back` at the start, middle and end of runs) as the brief asks. Checkpoints only get
   reconsidered if p99 goes above 200 ms.
 - Breakpoints: **Option A (recommended)** is a fixed set of predicates (`leader <node>`,
@@ -175,7 +175,7 @@ expected violation. All of them are replayed with mutations off and must pass.
   README, BUGZOO, and the results files above.
 - **Risks:** moving the bug-zoo seeds (planned, see P1.3); memory use for long traces (events
   stream to a writer and are never all kept by default); shrinking cost (each attempt is about
-  50 ms, so a few hundred attempts take seconds).
+  10 ms native, so a few hundred attempts take seconds).
 - **Effort:** trace 8–12 h, engine and CLI 10–15 h, schedule and shrinker 12–20 h (including the
   bug-zoo re-run), diff 3–4 h, causality 4–6 h, corpus 2 h, docs 4 h. **About 45–65 h.**
 

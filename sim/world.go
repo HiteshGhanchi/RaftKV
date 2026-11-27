@@ -32,8 +32,10 @@ type World struct {
 	rng   *rand.Rand
 
 	trace    hash.Hash64
+	buf      []byte // scratch space for canonical event encoding
 	traceLog []string
 	logTrace bool
+	sink     func(Event)
 	steps    uint64
 }
 
@@ -68,18 +70,42 @@ func (t *Timer) Stop() bool {
 	return true
 }
 
-// After schedules fn to run once d of virtual time has passed. Events with the
-// same deadline run in the order they were scheduled. The label is mixed into
-// the execution trace, so it should describe the event (for example
-// "deliver 1->2 MsgApp").
+// After schedules fn to run once d of virtual time has passed, recording a
+// trace event of kind "timer" with the label as its detail. Events with the
+// same deadline run in the order they were scheduled.
 func (w *World) After(d time.Duration, label string, fn func()) *Timer {
+	return w.Schedule(d, Event{Kind: "timer", Detail: label}, fn)
+}
+
+// Schedule is After with a typed trace event. When fn runs, ev is recorded
+// with its Step and At filled in.
+func (w *World) Schedule(d time.Duration, ev Event, fn func()) *Timer {
 	if d < 0 {
 		d = 0
 	}
 	w.seq++
-	ev := &event{at: w.now + d, seq: w.seq, label: label, fn: fn}
-	heap.Push(&w.queue, ev)
-	return &Timer{ev: ev}
+	e := &event{at: w.now + d, seq: w.seq, ev: ev, fn: fn}
+	heap.Push(&w.queue, e)
+	return &Timer{ev: e}
+}
+
+// NextAt returns the deadline of the next pending event, if any.
+func (w *World) NextAt() (time.Duration, bool) {
+	for w.queue.Len() > 0 {
+		if next := w.queue[0]; !next.done {
+			return next.at, true
+		}
+		heap.Pop(&w.queue)
+	}
+	return 0, false
+}
+
+// AdvanceTo moves the clock forward to t without running anything. It never
+// moves the clock backwards.
+func (w *World) AdvanceTo(t time.Duration) {
+	if t > w.now {
+		w.now = t
+	}
 }
 
 // Step runs the next pending event. It returns false when the queue is empty.
@@ -92,7 +118,7 @@ func (w *World) Step() bool {
 		ev.done = true
 		w.now = ev.at
 		w.steps++
-		w.record(ev.label)
+		w.record(ev.ev)
 		ev.fn()
 		return true
 	}
@@ -139,8 +165,18 @@ func (w *World) RunUntilOr(t time.Duration, stop func() bool) {
 // RunFor runs the simulation for d of virtual time.
 func (w *World) RunFor(d time.Duration) { w.RunUntil(w.now + d) }
 
-// Note mixes an extra observation into the trace without scheduling anything.
-func (w *World) Note(format string, args ...any) { w.record(fmt.Sprintf(format, args...)) }
+// Note records a free-text observation (kind "note") without scheduling
+// anything.
+func (w *World) Note(format string, args ...any) {
+	w.record(Event{Kind: "note", Detail: fmt.Sprintf(format, args...)})
+}
+
+// Emit records an observation made while the current event runs.
+func (w *World) Emit(ev Event) { w.record(ev) }
+
+// SetSink sends every recorded event to fn as well (for example a JSONL
+// writer). Observing the trace never changes the execution.
+func (w *World) SetSink(fn func(Event)) { w.sink = fn }
 
 // EnableTraceLog keeps a human-readable copy of every trace line (memory heavy;
 // meant for debugging a single failing seed).
@@ -153,18 +189,22 @@ func (w *World) TraceLog() []string { return w.traceLog }
 // seed must produce the same hash; that is the determinism contract.
 func (w *World) TraceHash() uint64 { return w.trace.Sum64() }
 
-func (w *World) record(label string) {
-	line := fmt.Sprintf("%d %s\n", w.now, label)
-	w.trace.Write([]byte(line))
+func (w *World) record(ev Event) {
+	ev.Step, ev.At = w.steps, w.now
+	w.buf = ev.appendCanonical(w.buf[:0])
+	w.trace.Write(w.buf)
 	if w.logTrace {
-		w.traceLog = append(w.traceLog, line[:len(line)-1])
+		w.traceLog = append(w.traceLog, ev.String())
+	}
+	if w.sink != nil {
+		w.sink(ev)
 	}
 }
 
 type event struct {
 	at    time.Duration
 	seq   uint64
-	label string
+	ev    Event
 	fn    func()
 	done  bool
 	index int
