@@ -7,7 +7,7 @@
       "Mutation": "commit-prev-term",
       "Rule": "Figure 2 Leaders rule 4 / §5.4.2: only commit entries from the current term by counting",
       "Seeds": 3000,
-      "Caught": 6,
+      "Caught": 7,
       "FirstSeed": 151,
       "SeedsToDetect": 151,
       "FirstFailure": "LeaderCompleteness: new leader 2 (term 14) lacks applied entry 29 (term 2)"
@@ -43,7 +43,7 @@
       "Mutation": "stale-read",
       "Rule": "Thesis §6.4: a leader must confirm it is still leader before serving a read",
       "Seeds": 3000,
-      "Caught": 54,
+      "Caught": 55,
       "FirstSeed": 35,
       "SeedsToDetect": 35,
       "FirstFailure": "history NOT linearizable"
@@ -52,7 +52,7 @@
       "Mutation": "accept-stale-term",
       "Rule": "AppendEntries receiver rule 1: reply false if term \u003c currentTerm",
       "Seeds": 3000,
-      "Caught": 39,
+      "Caught": 40,
       "FirstSeed": 28,
       "SeedsToDetect": 28,
       "FirstFailure": "StateMachineSafety: node 5 applied index 49 term 18, another node applied term 19 there"
@@ -61,7 +61,7 @@
       "Mutation": "skip-fsync",
       "Rule": "Figure 2: persist state before responding to RPCs",
       "Seeds": 3000,
-      "Caught": 857,
+      "Caught": 860,
       "FirstSeed": 3,
       "SeedsToDetect": 3,
       "FirstFailure": "LeaderCompleteness: new leader 2 (term 17) lacks applied entry 8 (term 7)"

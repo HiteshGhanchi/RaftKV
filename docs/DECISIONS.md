@@ -66,7 +66,7 @@ stable index. A leader that counted unsynced entries and then crashed could lose
 **Chosen: (b).** ReadIndex needs a committed entry from the current term, and the no-op commits old
 entries promptly. Likely side effect (reasoned, not measured): the no-op usually travels in the same
 message as the old-term entry, so the buggy commit rule rarely gets a chance to act alone. That
-probably explains why `commit-prev-term` is caught in only 6/3000 seeds.
+probably explains why `commit-prev-term` is caught in only 7/3000 seeds.
 
 **D5. Replication flow control.**
 (a) One AppendEntries at a time per follower.

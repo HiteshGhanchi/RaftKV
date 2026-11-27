@@ -80,7 +80,7 @@ seed=151 FAIL mutations=commit-prev-term violation=LeaderCompleteness: new leade
 
 # first divergence: same options with correct code (A) vs with commit-prev-term (B)
 
-first difference at event 1095 (step 704); 6440 and 4983 events in total
+first difference at event 1095 (step 704); 7816 and 4983 events in total
 common prefix (last events):
     #701 724.255529ms drop n3 peer=n2 blocked: MsgVote t2 i10 n0 c0 rfalse
     #701 724.255529ms role n3 term=2 vote=3 lead=0 commit=9 last=10 Candidate
@@ -95,7 +95,7 @@ A (mutations=none):
   > #706 730.869595ms send n1 peer=n2 msg=227 delay=3368138 MsgHeartbeat t2 i0 n0 c9 rfalse
   > #706 730.869595ms drop n1 peer=n3 blocked: MsgHeartbeat t2 i0 n0 c0 rfalse
   > #707 731.881276ms deliver n2 peer=n1 msg=219 MsgApp t2 i8 n1 c9 rfalse
-  result: seed=151 ok mutations=none violation=none history=linearizable ops=47/47 unknown=0 leaders=6 crashes=5 partitions=3 pauses=6 snapshots=3 trace=68c3c2638d248832
+  result: seed=151 ok mutations=none violation=none history=linearizable ops=59/59 unknown=0 leaders=6 crashes=5 partitions=3 pauses=6 snapshots=5 trace=ea5da452b7d13dca
 B (mutations=commit-prev-term):
   > #704 726.248589ms send n1 peer=n2 msg=226 delay=6221609 MsgApp t2 i10 n1 c10 rfalse
   > #704 726.248589ms apply n1 index=10 term=1

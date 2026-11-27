@@ -18,17 +18,17 @@ Add `-viz out.html` to get Porcupine's visualisation of a non-linearizable histo
 | skip-up-to-date-check | 2601/3000 | 1 | LeaderCompleteness |
 | no-dedup | 2413/3000 | 1 | Porcupine |
 | apply-before-commit | 2361/3000 | 1 | StateMachineSafety |
-| skip-fsync | 857/3000 | 3 | LeaderCompleteness |
-| stale-read | 54/3000 | 35 | Porcupine |
-| accept-stale-term | 39/3000 | 28 | StateMachineSafety |
-| commit-prev-term | 6/3000 | 151 | LeaderCompleteness |
+| skip-fsync | 860/3000 | 3 | LeaderCompleteness |
+| stale-read | 55/3000 | 35 | Porcupine |
+| accept-stale-term | 40/3000 | 28 | StateMachineSafety |
+| commit-prev-term | 7/3000 | 151 | LeaderCompleteness |
 | forget-vote | 3/3000 | 179 | ElectionSafety |
 
 **8/8 caught, median seeds to first detection 15.5.**
 
-These numbers changed on 2026-11-27, when the fault schedule became replayable data and timing
+These numbers changed on 2026-11-27, first when the fault schedule became replayable data and timing
 jitter got its own random stream (`docs/DECISIONS.md` V4). That moves every seed's behaviour, so
-the first failing seeds are new; the earlier run (2026-11-19) had the same 8/8 with a median of 9.5.
+the first failing seeds are new; the earlier run (2026-11-19) had the same 8/8 with a median of 9.5. They changed slightly again when the harness gained its Progress check (P8.1): a few more runs are caught, the first failing seeds did not move.
 
 ### Swarm testing (`-swarm`, `results/bugzoo-swarm.json`)
 
@@ -40,10 +40,10 @@ strongly faults aim at the leader. One 3000-seed run of each:
 | skip-up-to-date-check | 2601 | 2338 | 1 | 2 |
 | no-dedup | 2413 | 2508 | 1 | 1 |
 | apply-before-commit | 2361 | 2152 | 1 | 2 |
-| skip-fsync | 857 | 603 | 3 | 3 |
-| stale-read | 54 | 51 | 35 | 2 |
-| accept-stale-term | 39 | 73 | 28 | 54 |
-| commit-prev-term | 6 | 4 | 151 | 1302 |
+| skip-fsync | 860 | 615 | 3 | 3 |
+| stale-read | 55 | 51 | 35 | 2 |
+| accept-stale-term | 40 | 74 | 28 | 54 |
+| commit-prev-term | 7 | 4 | 151 | 1302 |
 | forget-vote | 3 | 2 | 179 | 450 |
 
 Swarm reaches its first detection sooner (median 2.5 seeds against 15.5) and catches
@@ -62,14 +62,14 @@ message loss or duplication, and shorter phases. The result is saved in
 
 | Mutation | Seed | Property | Faults | Nodes | Clients | Simulations |
 |---|---|---|---|---|---|---|
-| commit-prev-term | 151 | LeaderCompleteness | 28 → 18 | 3 → 3 | 4 → 4 | 189 |
-| skip-up-to-date-check | 1 | LeaderCompleteness | 16 → 1 | 5 → 5 | 4 → 1 | 18 |
-| forget-vote | 179 | ElectionSafety | 13 → 6 | 3 → 3 | 4 → 1 | 66 |
-| apply-before-commit | 1 | StateMachineSafety | 19 → 3 | 5 → 5 | 4 → 4 | 37 |
-| stale-read | 35 | Linearizability | 22 → 1 | 3 → 3 | 4 → 3 | 31 |
-| accept-stale-term | 28 | StateMachineSafety | 24 → 19 | 5 → 5 | 4 → 4 | 127 |
-| skip-fsync | 3 | LeaderCompleteness | 63 → 3 | 3 → 3 | 4 → 2 | 44 |
-| no-dedup | 1 | Linearizability | 25 → 0 | 5 → 5 | 4 → 1 | 16 |
+| commit-prev-term | 151 | LeaderCompleteness | 28 → 18 | 3 → 3 | 4 → 4 | 187 |
+| skip-up-to-date-check | 1 | LeaderCompleteness | 16 → 1 | 5 → 5 | 4 → 1 | 16 |
+| forget-vote | 179 | ElectionSafety | 13 → 6 | 3 → 3 | 4 → 1 | 64 |
+| apply-before-commit | 1 | StateMachineSafety | 19 → 3 | 5 → 5 | 4 → 4 | 35 |
+| stale-read | 35 | Linearizability | 22 → 1 | 3 → 3 | 4 → 3 | 29 |
+| accept-stale-term | 28 | StateMachineSafety | 24 → 19 | 5 → 5 | 4 → 4 | 125 |
+| skip-fsync | 3 | LeaderCompleteness | 63 → 3 | 3 → 3 | 4 → 2 | 42 |
+| no-dedup | 1 | Linearizability | 25 → 0 | 5 → 5 | 4 → 1 | 14 |
 
 `no-dedup` needs no faults at all: message loss and duplication alone make a retried append take
 effect twice. The two rarest bugs (`commit-prev-term`, `accept-stale-term`) shrink least: removing
@@ -113,7 +113,7 @@ originals, because with fewer faults the bug surfaces later. Open one in the deb
   new leader has committed newer writes.
 - **How it is caught**: Porcupine (a read returning an old value after a newer write finished).
   Visible only while a deposed leader still believes it leads, so it needs seeds where CheckQuorum
-  is off or a pause hides the new leader; that's why it is only 54/3000.
+  is off or a pause hides the new leader; that's why it is only 55/3000.
 
 ### accept-stale-term
 - **Breaks**: AppendEntries receiver rule 1.
@@ -127,7 +127,7 @@ originals, because with fewer faults the bug surfaces later. Open one in the deb
 - **Breaks**: Figure 2 Leaders rule 4's `log[N].term == currentTerm`.
 - **What goes wrong**: exactly Figure 8. A leader commits an old-term entry because a majority
   stores it, crashes, and a server with a newer conflicting entry is elected and overwrites it.
-- **How it is caught**: `LeaderCompleteness` when the overwriting leader is elected. Rare (6/3000).
+- **How it is caught**: `LeaderCompleteness` when the overwriting leader is elected. Rare (7/3000).
   The schedule needs about five elections in a specific order, and the leader's no-op usually rides
   in the same message as the old entry, so the buggy rule rarely acts alone. Seeds with one entry
   per message make it possible. The unit test

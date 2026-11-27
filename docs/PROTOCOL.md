@@ -49,6 +49,7 @@ Theory and Practice*.
 | **Leader Completeness** | `harness.RoleChanged`: a new leader of term T holds every applied entry whose commit-term bound is below T | every election | `LeaderCompleteness` over the `committed` history |
 | **State Machine Safety** | `harness.Applied`: no two nodes apply different entries at one index | every applied entry | `StateMachineSafety` |
 | Committed entries are never truncated (node-local) | `invariant("CommittedNeverTruncated")` in `raftLog.maybeAppend` | always, also in production | implied by `LeaderCompleteness` + `StateMachineSafety` |
+| Progress (liveness, not in Figure 2) | `Sim.Finish`: at least one client operation completes after the faults stop | end of every run | not modelled |
 | **Linearizability** of client operations | `check.History.Linearizable` (Porcupine) | end of every chaos run | not modelled (the spec has no clients) |
 
 Invariant names in failure reports (for example `LeaderCompleteness: new leader 3 …`) are exactly

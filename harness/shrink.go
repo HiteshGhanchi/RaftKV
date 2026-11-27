@@ -121,7 +121,9 @@ func Shrink(o Options, budget int) (Repro, ShrinkStats, error) {
 			try(func(c *Options) { c.Duration = d })
 		}
 	}
-	for cur.Settle > 250*time.Millisecond {
+	// The settle phase must leave time for an election after the network
+	// heals, or correct code would fail the Progress check.
+	for cur.Settle/2 >= time.Second {
 		before := cur.Settle
 		try(func(c *Options) { c.Settle /= 2 })
 		if cur.Settle == before {

@@ -142,6 +142,9 @@ func (cl *client) onReply(attempt uint64, from raft.NodeID, r peer.Result) {
 	}
 	c.hist.Add(check.Op{Client: cl.idx, Input: cl.in, Output: out, Call: cl.called, Return: c.w.Now()})
 	c.res.Completed++
+	if c.w.Now() > c.opt.Duration {
+		c.healedOps++
+	}
 	c.w.Emit(sim.Event{Kind: "client-ok", Node: from, Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}, Detail: cl.in.String() + " -> " + fmt.Sprintf("%q", out.Value)})
 	c.w.Schedule(time.Duration(c.crng.IntN(10))*time.Millisecond, sim.Event{Kind: "client-next", Attrs: []sim.Attr{sim.A("client", int64(cl.idx))}}, cl.next)
 }

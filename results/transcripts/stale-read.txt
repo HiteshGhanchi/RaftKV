@@ -8,38 +8,39 @@ scheduled, not yet injected:
 breakpoint 1: violation
 (debug) continue
 no breakpoint hit before the run ended
-step 2185, t=1.35s, finished
+step 3238, t=2.1s, finished
 (debug) nodes
-n1 Leader    term=2 vote=1 lead=1 commit=77 applied=77 log=[snap 0 .. 77] lastTerm=2
-n2 Follower  term=2 vote=1 lead=1 commit=77 applied=77 log=[snap 0 .. 77] lastTerm=2
-n3 Follower  term=2 vote=0 lead=1 commit=77 applied=77 log=[snap 0 .. 77] lastTerm=2
+n1 Leader    term=2 vote=1 lead=1 commit=113 applied=113 log=[snap 0 .. 113] lastTerm=2
+n2 Follower  term=2 vote=1 lead=1 commit=113 applied=113 log=[snap 0 .. 113] lastTerm=2
+n3 Follower  term=2 vote=0 lead=1 commit=113 applied=113 log=[snap 0 .. 113] lastTerm=2
 (debug) back 20
-step 2165, t=1.322776465s, running
+step 3218, t=2.067871173s, running
 (debug) events 12
-  #2158 1.309169664s deliver n3 peer=n1 msg=1186 MsgHeartbeat t2 i0 n0 c77 rfalse
-  #2158 1.309169664s send n3 peer=n1 msg=1188 delay=9324212 MsgHeartbeatResp t2 i0 n0 c0 rfalse
-  #2159 1.310026823s deliver n1 peer=n2 msg=1187 MsgHeartbeatResp t2 i0 n0 c0 rfalse
-  #2160 1.312103166s tick n1
-  #2160 1.312103166s send n1 peer=n2 msg=1189 delay=13217397 MsgHeartbeat t2 i0 n0 c77 rfalse
-  #2160 1.312103166s send n1 peer=n3 msg=1190 delay=14072201 MsgHeartbeat t2 i0 n0 c77 rfalse
-  #2161 1.312559569s tick n2
-  #2162 1.313522658s deliver n2 peer=n1 msg=1185 MsgHeartbeat t2 i0 n0 c77 rfalse
-  #2162 1.313522658s send n2 peer=n1 msg=1191 delay=9253807 MsgHeartbeatResp t2 i0 n0 c0 rfalse
-  #2163 1.314635015s tick n3
-  #2164 1.318493876s deliver n1 peer=n3 msg=1188 MsgHeartbeatResp t2 i0 n0 c0 rfalse
-  #2165 1.322776465s deliver n1 peer=n2 msg=1191 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #3212 2.064185763s deliver n2 peer=n1 msg=1816 MsgHeartbeat t2 i0 n0 c113 rfalse
+  #3212 2.064185763s send n2 peer=n1 msg=1819 delay=14140483 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #3213 2.064190529s deliver n3 peer=n1 msg=1817 MsgHeartbeat t2 i0 n0 c113 rfalse
+  #3213 2.064190529s send n3 peer=n1 msg=1820 delay=1737381 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #3214 2.064600186s tick n1
+  #3214 2.064600186s send n1 peer=n2 msg=1821 delay=3270987 MsgHeartbeat t2 i0 n0 c113 rfalse
+  #3214 2.064600186s send n1 peer=n3 msg=1822 delay=5726779 MsgHeartbeat t2 i0 n0 c113 rfalse
+  #3215 2.06592791s deliver n1 peer=n3 msg=1820 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #3216 2.066464227s deliver n1 peer=n2 msg=1818 MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #3217 2.066683655s tick n3
+  #3218 2.067871173s deliver n2 peer=n1 msg=1821 MsgHeartbeat t2 i0 n0 c113 rfalse
+  #3218 2.067871173s send n2 peer=n1 msg=1823 delay=2517535 MsgHeartbeatResp t2 i0 n0 c0 rfalse
 (debug) inflight
-  #1189 n1 -> n2 arrives 1.325320563s: MsgHeartbeat t2 i0 n0 c77 rfalse
-  #1190 n1 -> n3 arrives 1.326175367s: MsgHeartbeat t2 i0 n0 c77 rfalse
+  #1822 n1 -> n3 arrives 2.070326965s: MsgHeartbeat t2 i0 n0 c113 rfalse
+  #1823 n2 -> n1 arrives 2.070388708s: MsgHeartbeatResp t2 i0 n0 c0 rfalse
+  #1819 n2 -> n1 arrives 2.078326246s: MsgHeartbeatResp t2 i0 n0 c0 rfalse
 (debug) run-to violation
 not hit before the run ended
-step 2185, t=1.35s, finished
+step 3238, t=2.1s, finished
 (debug) finish
-seed=35 FAIL mutations=stale-read violation=none history=NOT linearizable ops=104/104 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=d61374e73d7bd47
+seed=35 FAIL mutations=stale-read violation=none history=NOT linearizable ops=147/147 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=2be033dec0c5178b
 
 # first divergence: same options with correct code (A) vs with stale-read (B)
 
-first difference at event 438 (step 262); 4370 and 4017 events in total
+first difference at event 438 (step 262); 6125 and 5929 events in total
 common prefix (last events):
     #259 197.017942ms send n1 peer=n3 msg=118 delay=7724449 MsgAppResp t1 i9 n0 c0 rfalse
     #260 197.236814ms deliver n1 peer=n3 msg=98 MsgApp t1 i9 n0 c6 rfalse
@@ -54,7 +55,7 @@ A (mutations=none):
   > #263 198.857173ms send n2 peer=n3 msg=123 delay=7845952 MsgAppResp t1 i7 n0 c0 rfalse
   > #264 199.318644ms client-timeout n3 client=0
   > #265 200ms check
-  result: seed=35 ok mutations=none violation=none history=linearizable ops=91/91 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=c3f7924c8878bba3
+  result: seed=35 ok mutations=none violation=none history=linearizable ops=121/121 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=18cc311743caafa7
 B (mutations=stale-read):
   > #263 198.857173ms deliver n2 peer=n3 msg=106 MsgApp t1 i6 n3 c7 rfalse
   > #263 198.857173ms send n2 peer=n3 msg=121 delay=7612016 MsgAppResp t1 i7 n0 c0 rfalse
@@ -62,4 +63,4 @@ B (mutations=stale-read):
   > #265 200ms check
   > #266 200.361311ms client-reply n3 client=1
   > #266 200.361311ms client-ok n3 client=1 get(k2) -> "1.1;"
-  result: seed=35 FAIL mutations=stale-read violation=none history=NOT linearizable ops=104/104 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=d61374e73d7bd47
+  result: seed=35 FAIL mutations=stale-read violation=none history=NOT linearizable ops=147/147 unknown=0 leaders=2 crashes=0 partitions=1 pauses=0 snapshots=0 trace=2be033dec0c5178b

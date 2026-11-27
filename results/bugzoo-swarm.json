@@ -52,7 +52,7 @@
       "Mutation": "accept-stale-term",
       "Rule": "AppendEntries receiver rule 1: reply false if term \u003c currentTerm",
       "Seeds": 3000,
-      "Caught": 73,
+      "Caught": 74,
       "FirstSeed": 54,
       "SeedsToDetect": 54,
       "FirstFailure": "StateMachineSafety: node 3 applied index 22 term 2, another node applied term 1 there"
@@ -61,7 +61,7 @@
       "Mutation": "skip-fsync",
       "Rule": "Figure 2: persist state before responding to RPCs",
       "Seeds": 3000,
-      "Caught": 603,
+      "Caught": 615,
       "FirstSeed": 3,
       "SeedsToDetect": 3,
       "FirstFailure": "LeaderCompleteness: new leader 2 (term 7) lacks applied entry 1 (term 2)"

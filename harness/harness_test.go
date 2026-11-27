@@ -96,3 +96,17 @@ var bugZooSeeds = []struct {
 	{mutation.SkipFsync, 3},
 	{mutation.NoDedup, 1},
 }
+
+// A cluster that can never elect a leader breaks no safety property, but it
+// must fail the Progress check.
+func TestProgressCheckCatchesAStalledCluster(t *testing.T) {
+	o := DefaultOptions(3)
+	o.ElectionTick = 1000 // a 10 s election timeout in a 6 s run
+	r := Run(o)
+	if Property(r) != "Progress" {
+		t.Fatalf("stalled cluster: got %q, want Progress: %s", Property(r), r)
+	}
+	if r := Run(DefaultOptions(3)); r.Failed() {
+		t.Fatalf("normal run failed: %s", r)
+	}
+}

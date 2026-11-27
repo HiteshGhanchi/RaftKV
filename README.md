@@ -126,7 +126,10 @@ Then, in another terminal:
    Clients time out and retry with the same sequence number.
 4. **Invariants checked while running**: Election Safety, Leader Append-Only, Log Matching,
    Leader Completeness, State Machine Safety, and a node-local "a committed entry is never
-   truncated" assertion. The first violation stops the run and is reported with its name.
+   truncated" assertion. The first violation stops the run and is reported with its name. One
+   liveness check, **Progress**: after the faults stop and the network heals, at least one client
+   operation must complete before the run ends (added after automatic mutation testing showed that
+   a change which blocks every election passed the safety checks).
 5. **Linearizability**: every completed client operation goes into a history that Porcupine checks
    (partitioned by key). A checker timeout counts as *inconclusive*, never as a pass. Across the
    10,000-seed sweep there were 0 inconclusive results.
@@ -171,10 +174,10 @@ eight bugs are in [`results/transcripts/`](results/transcripts/).
 | `skip-up-to-date-check` | RequestVote: candidate log must be up-to-date (§5.4.1) | 2601/3000 | 1 | LeaderCompleteness |
 | `no-dedup` | Retries must take effect once (thesis §6.3) | 2413/3000 | 1 | history not linearizable |
 | `apply-before-commit` | Apply only up to commitIndex | 2361/3000 | 1 | StateMachineSafety |
-| `skip-fsync` | Persist before responding | 857/3000 | 3 | LeaderCompleteness |
-| `stale-read` | Leader must confirm leadership before a read (thesis §6.4) | 54/3000 | 35 | history not linearizable |
-| `accept-stale-term` | AppendEntries rule 1: reject older terms | 39/3000 | 28 | StateMachineSafety |
-| `commit-prev-term` | Leaders rule 4: commit only current-term entries by counting (Figure 8) | 6/3000 | 151 | LeaderCompleteness |
+| `skip-fsync` | Persist before responding | 860/3000 | 3 | LeaderCompleteness |
+| `stale-read` | Leader must confirm leadership before a read (thesis §6.4) | 55/3000 | 35 | history not linearizable |
+| `accept-stale-term` | AppendEntries rule 1: reject older terms | 40/3000 | 28 | StateMachineSafety |
+| `commit-prev-term` | Leaders rule 4: commit only current-term entries by counting (Figure 8) | 7/3000 | 151 | LeaderCompleteness |
 | `forget-vote` | votedFor is persistent state | 3/3000 | 179 | ElectionSafety |
 
 **8/8 caught; median seeds to first detection = 15.5.** The last two are rare on purpose: they need

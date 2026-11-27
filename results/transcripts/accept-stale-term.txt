@@ -76,7 +76,7 @@ seed=28 FAIL mutations=accept-stale-term violation=StateMachineSafety: node 2 ap
 
 # first divergence: same options with correct code (A) vs with accept-stale-term (B)
 
-first difference at event 887 (step 586); 11298 and 9317 events in total
+first difference at event 887 (step 586); 13617 and 9317 events in total
 common prefix (last events):
     #581 622.824259ms tick n2
     #582 623.057669ms deliver n2 peer=n3 msg=132 MsgVoteResp t3 i0 n0 c0 rtrue
@@ -91,7 +91,7 @@ A (mutations=none):
   > #588 630.286513ms send n1 peer=n2 msg=202 delay=209200127 MsgHeartbeat t4 i0 n0 c0 rfalse
   > #588 630.286513ms send n1 peer=n3 msg=203 delay=14729763 MsgHeartbeat t4 i0 n0 c0 rfalse
   > #588 630.286513ms drop n1 peer=n4 lost: MsgHeartbeat t4 i0 n0 c0 rfalse
-  result: seed=28 ok mutations=none violation=none history=linearizable ops=53/55 unknown=2 leaders=6 crashes=1 partitions=5 pauses=5 snapshots=18 trace=6ff03a5822dbd63c
+  result: seed=28 ok mutations=none violation=none history=linearizable ops=63/64 unknown=1 leaders=6 crashes=1 partitions=5 pauses=5 snapshots=17 trace=c1d9b266bb7f0c7d
 B (mutations=accept-stale-term):
   > #586 627.82662ms send n4 peer=n1 msg=201 delay=8508926 MsgAppResp t5 i1 n0 c0 rfalse
   > #587 630ms client-timeout n1 client=1

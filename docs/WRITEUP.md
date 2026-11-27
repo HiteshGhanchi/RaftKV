@@ -27,7 +27,7 @@ counting, serve reads without confirming leadership, skip fsync, and so on).
 ## Results
 
 - **8/8 injected bugs caught** over 3000 seeds each; median 15.5 seeds to first detection
-  (`results/bugzoo.json`). Two are genuinely rare: Figure 8 (6/3000 seeds) and the double vote
+  (`results/bugzoo.json`). Two are genuinely rare: Figure 8 (7/3000 seeds) and the double vote
   after forgetting `votedFor` (3/3000). A few hundred seeds would have missed them.
 - **10,000 chaos runs of correct code**: 0 failures and 1,592,965 client operations, all
   linearizable (`results/chaos-10000.json`).

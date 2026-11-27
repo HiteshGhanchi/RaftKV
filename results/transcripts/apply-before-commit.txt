@@ -62,7 +62,7 @@ seed=1 FAIL mutations=apply-before-commit violation=StateMachineSafety: node 4 a
 
 # first divergence: same options with correct code (A) vs with apply-before-commit (B)
 
-first difference at event 175 (step 151); 25565 and 34068 events in total
+first difference at event 175 (step 151); 30128 and 34068 events in total
 common prefix (last events):
     #150 104.868926ms tick n1
     #151 104.888456ms deliver n5 peer=n2 msg=6 MsgVoteResp t1 i0 n0 c0 rfalse
@@ -77,7 +77,7 @@ A (mutations=none):
   > #153 105.628287ms send n5 peer=n1 msg=12 delay=12602357 MsgHeartbeat t1 i0 n0 c0 rfalse
   > #153 105.628287ms send n5 peer=n2 msg=13 delay=12780340 MsgHeartbeat t1 i0 n0 c0 rfalse
   > #153 105.628287ms send n5 peer=n3 msg=14 delay=2943437 MsgHeartbeat t1 i0 n0 c0 rfalse
-  result: seed=1 ok mutations=none violation=none history=linearizable ops=323/323 unknown=0 leaders=2 crashes=0 partitions=0 pauses=1 snapshots=23 trace=23ca78046afe178c
+  result: seed=1 ok mutations=none violation=none history=linearizable ops=382/382 unknown=0 leaders=2 crashes=0 partitions=0 pauses=1 snapshots=28 trace=f4620684e458b463
 B (mutations=apply-before-commit):
   > #151 104.888456ms apply n5 index=1 term=1
   > #151 104.888456ms role n5 term=1 vote=5 lead=5 commit=0 last=1 Leader

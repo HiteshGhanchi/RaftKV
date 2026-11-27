@@ -50,7 +50,7 @@ Session transcripts for all eight bug-zoo mutations, each with a correct-vs-muta
 
 The mutation removes the term check from the leader's commit rule (Figure 2, Leaders rule 4): a
 leader may commit an entry from an earlier term just because a majority stores it. The bug zoo
-first catches it at seed 151 (6 of 3000 seeds). Shrinking cut the schedule from 28 faults to 18;
+first catches it at seed 151 (7 of 3000 seeds). Shrinking cut the schedule from 28 faults to 18;
 the file is `harness/testdata/schedules/commit-prev-term.json`. All output below is copied from
 `results/transcripts/commit-prev-term.txt` and from the commands shown.
 
@@ -107,7 +107,7 @@ made n3's log at least as up-to-date as n2's, so n2 could not have won.
 
 ```
 $ ./bin/raftlab-debug -repro harness/testdata/schedules/commit-prev-term.json -mutation none -diff commit-prev-term
-first difference at event 1095 (step 704); 6440 and 4983 events in total
+first difference at event 1095 (step 704); 7816 and 4983 events in total
 A (mutations=none):
   > #704 726.248589ms send n1 peer=n2 msg=226 delay=6221609 MsgApp t2 i10 n1 c9 rfalse
 B (mutations=commit-prev-term):

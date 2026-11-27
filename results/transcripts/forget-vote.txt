@@ -53,7 +53,7 @@ seed=179 FAIL mutations=forget-vote violation=ElectionSafety: nodes 2 and 1 both
 
 # first divergence: same options with correct code (A) vs with forget-vote (B)
 
-first difference at event 2419 (step 1494); 7457 and 2428 events in total
+first difference at event 2419 (step 1494); 8807 and 2428 events in total
 common prefix (last events):
     #1491 2.155271113s apply n3 index=13 term=1
     #1491 2.155271113s start n3 term=4 last=14
@@ -68,7 +68,7 @@ A (mutations=none):
   > #1497 2.168244887s tick n1
   > #1498 2.168254413s deliver n1 peer=n3 msg=663 MsgVoteResp t4 i0 n0 c0 rtrue
   > #1499 2.170690369s tick n2
-  result: seed=179 ok mutations=none violation=none history=linearizable ops=111/111 unknown=0 leaders=4 crashes=4 partitions=0 pauses=1 snapshots=18 trace=a9a850e6d5a28d3b
+  result: seed=179 ok mutations=none violation=none history=linearizable ops=128/128 unknown=0 leaders=4 crashes=4 partitions=0 pauses=1 snapshots=21 trace=d4030142f515f8d3
 B (mutations=forget-vote):
   > #1494 2.157545867s send n3 peer=n1 msg=663 delay=10708546 MsgVoteResp t4 i0 n0 c0 rfalse
   > #1495 2.16001037s tick n2

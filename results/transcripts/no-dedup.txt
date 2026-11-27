@@ -7,45 +7,46 @@ no faults yet
 breakpoint 1: violation
 (debug) continue
 no breakpoint hit before the run ended
-step 10243, t=4.25s, finished
+step 11790, t=5s, finished
 (debug) nodes
-n1 Follower  term=1 vote=5 lead=5 commit=113 applied=113 log=[snap 80 .. 113] lastTerm=1
-n2 Follower  term=1 vote=5 lead=5 commit=113 applied=113 log=[snap 80 .. 113] lastTerm=1
-n3 Follower  term=1 vote=5 lead=5 commit=113 applied=113 log=[snap 80 .. 113] lastTerm=1
-n4 Follower  term=1 vote=5 lead=5 commit=113 applied=113 log=[snap 80 .. 113] lastTerm=1
-n5 Leader    term=1 vote=5 lead=5 commit=113 applied=113 log=[snap 80 .. 113] lastTerm=1
+n1 Follower  term=1 vote=5 lead=5 commit=127 applied=127 log=[snap 120 .. 127] lastTerm=1
+n2 Follower  term=1 vote=5 lead=5 commit=127 applied=127 log=[snap 120 .. 127] lastTerm=1
+n3 Follower  term=1 vote=5 lead=5 commit=127 applied=127 log=[snap 120 .. 127] lastTerm=1
+n4 Follower  term=1 vote=5 lead=5 commit=127 applied=127 log=[snap 120 .. 127] lastTerm=1
+n5 Leader    term=1 vote=5 lead=5 commit=127 applied=127 log=[snap 120 .. 127] lastTerm=1
 (debug) back 20
-step 10223, t=4.232982242s, running
+step 11770, t=4.985169417s, running
 (debug) events 12
-  #10217 4.22873547s deliver n5 peer=n4 msg=7442 MsgHeartbeatResp t1 i0 n0 c0 rfalse
-  #10218 4.22893238s tick n1
-  #10219 4.228941626s tick n2
-  #10220 4.231782427s deliver n4 peer=n5 msg=7440 MsgHeartbeat t1 i0 n0 c113 rfalse
-  #10220 4.231782427s send n4 peer=n5 msg=7445 delay=1199815 MsgHeartbeatResp t1 i0 n0 c0 rfalse
-  #10221 4.232496196s deliver n5 peer=n3 msg=7443 MsgHeartbeatResp t1 i0 n0 c0 rfalse
-  #10222 4.232579118s tick n5
-  #10222 4.232579118s send n5 peer=n1 msg=7446 delay=11859530 MsgHeartbeat t1 i0 n0 c113 rfalse
-  #10222 4.232579118s send n5 peer=n2 msg=7447 delay=5774757 MsgHeartbeat t1 i0 n0 c113 rfalse
-  #10222 4.232579118s send n5 peer=n3 msg=7448 delay=14048242 MsgHeartbeat t1 i0 n0 c113 rfalse
-  #10222 4.232579118s send n5 peer=n4 msg=7449 delay=11210827 MsgHeartbeat t1 i0 n0 c113 rfalse
-  #10223 4.232982242s deliver n5 peer=n4 msg=7445 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #11764 4.983125474s tick n2
+  #11765 4.983234383s deliver n3 peer=n5 msg=8544 MsgHeartbeat t1 i0 n0 c127 rfalse
+  #11765 4.983234383s send n3 peer=n5 msg=8548 delay=1284362 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #11766 4.983915479s deliver n5 peer=n2 msg=8540 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #11767 4.984518745s deliver n5 peer=n3 msg=8548 MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #11768 4.984561482s tick n5
+  #11768 4.984561482s send n5 peer=n1 msg=8549 delay=8048687 MsgHeartbeat t1 i0 n0 c127 rfalse
+  #11768 4.984561482s send n5 peer=n2 msg=8550 delay=11440420 MsgHeartbeat t1 i0 n0 c127 rfalse
+  #11768 4.984561482s send n5 peer=n3 msg=8551 delay=7201296 MsgHeartbeat t1 i0 n0 c127 rfalse
+  #11768 4.984561482s send n5 peer=n4 msg=8552 delay=14569856 MsgHeartbeat t1 i0 n0 c127 rfalse
+  #11769 4.984825412s tick n1
+  #11770 4.985169417s deliver n5 peer=n4 msg=8539 MsgHeartbeatResp t1 i0 n0 c0 rfalse
 (debug) inflight
-  #7444 n3 -> n5 arrives 4.233121443s: MsgHeartbeatResp t1 i0 n0 c0 rfalse
-  #7436 n2 -> n5 arrives 4.233639269s: MsgHeartbeatResp t1 i0 n0 c0 rfalse
-  #7441 n2 -> n5 arrives 4.237120604s: MsgHeartbeatResp t1 i0 n0 c0 rfalse
-  #7447 n5 -> n2 arrives 4.238353875s: MsgHeartbeat t1 i0 n0 c113 rfalse
-  #7449 n5 -> n4 arrives 4.243789945s: MsgHeartbeat t1 i0 n0 c113 rfalse
-  #7446 n5 -> n1 arrives 4.244438648s: MsgHeartbeat t1 i0 n0 c113 rfalse
-  #7448 n5 -> n3 arrives 4.24662736s: MsgHeartbeat t1 i0 n0 c113 rfalse
+  #8543 n5 -> n2 arrives 4.986178102s: MsgHeartbeat t1 i0 n0 c127 rfalse
+  #8541 n3 -> n5 arrives 4.987011114s: MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #8547 n4 -> n5 arrives 4.989152591s: MsgHeartbeatResp t1 i0 n0 c0 rfalse
+  #8542 n5 -> n1 arrives 4.989750149s: MsgHeartbeat t1 i0 n0 c127 rfalse
+  #8551 n5 -> n3 arrives 4.991762778s: MsgHeartbeat t1 i0 n0 c127 rfalse
+  #8549 n5 -> n1 arrives 4.992610169s: MsgHeartbeat t1 i0 n0 c127 rfalse
+  #8550 n5 -> n2 arrives 4.996001902s: MsgHeartbeat t1 i0 n0 c127 rfalse
+  #8552 n5 -> n4 arrives 4.999131338s: MsgHeartbeat t1 i0 n0 c127 rfalse
 (debug) run-to violation
 not hit before the run ended
-step 10243, t=4.25s, finished
+step 11790, t=5s, finished
 (debug) finish
-seed=1 FAIL mutations=no-dedup violation=none history=NOT linearizable ops=142/142 unknown=0 leaders=1 crashes=0 partitions=0 pauses=0 snapshots=10 trace=8cdd0806f860c732
+seed=1 FAIL mutations=no-dedup violation=none history=NOT linearizable ops=158/158 unknown=0 leaders=1 crashes=0 partitions=0 pauses=0 snapshots=15 trace=39825ea4d0c709a8
 
 # first divergence: same options with correct code (A) vs with no-dedup (B)
 
-first difference at event 2092 (step 1167); 18656 and 18656 events in total
+first difference at event 2092 (step 1167); 21425 and 21425 events in total
 common prefix (last events):
     #1163 549.705694ms tick n3
     #1164 550ms check
@@ -60,7 +61,7 @@ A (mutations=none):
   > #1170 552.239481ms deliver n5 peer=n2 msg=794 MsgHeartbeatResp t1 i0 n0 c0 rfalse
   > #1171 552.423696ms deliver n5 peer=n3 msg=796 MsgHeartbeatResp t1 i0 n0 c0 rfalse
   > #1172 553.236837ms tick n5
-  result: seed=1 ok mutations=none violation=none history=linearizable ops=142/142 unknown=0 leaders=1 crashes=0 partitions=0 pauses=0 snapshots=10 trace=a136c22cb393149c
+  result: seed=1 ok mutations=none violation=none history=linearizable ops=158/158 unknown=0 leaders=1 crashes=0 partitions=0 pauses=0 snapshots=15 trace=da8b71ae7c59bb82
 B (mutations=no-dedup):
   > #1167 550.816082ms client-ok n5 client=0 get(k0) -> "1.7;1.8;1.8;"
   > #1168 551.668969ms deliver n5 peer=n1 msg=792 MsgHeartbeatResp t1 i0 n0 c0 rfalse
@@ -68,4 +69,4 @@ B (mutations=no-dedup):
   > #1170 552.239481ms deliver n5 peer=n2 msg=794 MsgHeartbeatResp t1 i0 n0 c0 rfalse
   > #1171 552.423696ms deliver n5 peer=n3 msg=796 MsgHeartbeatResp t1 i0 n0 c0 rfalse
   > #1172 553.236837ms tick n5
-  result: seed=1 FAIL mutations=no-dedup violation=none history=NOT linearizable ops=142/142 unknown=0 leaders=1 crashes=0 partitions=0 pauses=0 snapshots=10 trace=8cdd0806f860c732
+  result: seed=1 FAIL mutations=no-dedup violation=none history=NOT linearizable ops=158/158 unknown=0 leaders=1 crashes=0 partitions=0 pauses=0 snapshots=15 trace=39825ea4d0c709a8

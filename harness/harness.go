@@ -196,6 +196,7 @@ type cluster struct {
 	clients     []*client
 	stopClients time.Duration
 	end         time.Duration
+	healedOps   int // client operations completed after the faults stopped
 }
 
 // Run executes one simulated run.
@@ -277,6 +278,13 @@ func (s *Sim) Finish() Result {
 	c := s.c
 	if !c.failed {
 		c.w.AdvanceTo(c.end)
+		// Progress: once the faults stop and the network heals, a correct
+		// cluster elects a leader and serves requests. A run where nothing
+		// completes after that is a liveness failure, even though doing
+		// nothing never breaks a safety property.
+		if c.opt.Clients > 0 && c.healedOps == 0 {
+			c.fail("Progress", "no client operation completed in the %v after the faults stopped", c.end-c.opt.Duration)
+		}
 	}
 	c.res.Schedule = &c.sched
 	c.res.Steps = c.w.Steps()

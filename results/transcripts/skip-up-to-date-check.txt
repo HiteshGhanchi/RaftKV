@@ -67,7 +67,7 @@ seed=1 FAIL mutations=skip-up-to-date-check violation=LeaderCompleteness: new le
 
 # first divergence: same options with correct code (A) vs with skip-up-to-date-check (B)
 
-first difference at event 10221 (step 5661); 17695 and 10280 events in total
+first difference at event 10221 (step 5661); 20129 and 10280 events in total
 common prefix (last events):
     #5658 2.432003538s deliver n4 peer=n5 msg=3976 MsgApp t1 i66 n0 c65 rfalse
     #5658 2.432003538s send n4 peer=n5 msg=3999 delay=13485142 MsgAppResp t1 i66 n0 c0 rfalse
@@ -82,7 +82,7 @@ A (mutations=none):
   > #5663 2.434587096s client-request n5 client=0 get(k2)
   > #5663 2.434587096s send n5 peer=n1 msg=4002 delay=2435665 MsgHeartbeat t1 i0 n0 c66 rfalse
   > #5663 2.434587096s send n5 peer=n2 msg=4003 delay=14365288 MsgHeartbeat t1 i0 n0 c66 rfalse
-  result: seed=1 ok mutations=none violation=none history=linearizable ops=155/155 unknown=0 leaders=2 crashes=0 partitions=0 pauses=0 snapshots=9 trace=19cd3c429718ddf9
+  result: seed=1 ok mutations=none violation=none history=linearizable ops=170/170 unknown=0 leaders=2 crashes=0 partitions=0 pauses=0 snapshots=14 trace=301ecd11641ca399
 B (mutations=skip-up-to-date-check):
   > #5661 2.432336842s send n2 peer=n3 msg=4001 delay=13443533 MsgVoteResp t2 i0 n0 c0 rfalse
   > #5661 2.432336842s role n2 term=2 vote=3 lead=0 commit=66 last=66 Follower
