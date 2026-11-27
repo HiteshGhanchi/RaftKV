@@ -5,6 +5,7 @@ import (
 	"slices"
 	"time"
 
+	"raftlab/check"
 	"raftlab/raft"
 	"raftlab/sim"
 )
@@ -225,6 +226,7 @@ func (c *cluster) only(ids []raft.NodeID) []raft.NodeID {
 
 // apply injects one resolved fault.
 func (c *cluster) apply(f Fault) {
+	c.annotate(f)
 	switch f.Kind {
 	case FaultCrash:
 		id := f.Node
@@ -269,4 +271,25 @@ func (c *cluster) apply(f Fault) {
 		c.res.Pauses++
 		c.w.Emit(sim.Event{Kind: "pause", Node: id, Attrs: []sim.Attr{sim.A("until", int64(c.pause[id]))}})
 	}
+}
+
+// annotate puts the fault on the linearizability visualisation's timeline:
+// node faults on that node's row, network faults on a "network" row.
+func (c *cluster) annotate(f Fault) {
+	row, desc := "network", f.Kind
+	switch f.Kind {
+	case FaultCrash:
+		row, desc = fmt.Sprintf("n%d", f.Node), "crashed"
+	case FaultPause:
+		row, desc = fmt.Sprintf("n%d", f.Node), "paused"
+	case FaultPartition:
+		desc = fmt.Sprintf("partition %v | %v", f.Side, f.Other)
+	case FaultOneWay:
+		desc = fmt.Sprintf("block n%d->n%d", f.Node, f.Peer)
+	case FaultSlow:
+		desc = "slow network"
+	default:
+		return
+	}
+	c.hist.Annotate(check.Annotation{Row: row, Start: c.w.Now(), End: c.w.Now() + f.Dur, Description: desc, Details: f.String()})
 }

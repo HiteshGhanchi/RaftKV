@@ -55,7 +55,26 @@ type Op struct {
 }
 
 // History collects operations in the order they finish.
-type History struct{ ops []Op }
+type History struct {
+	ops   []Op
+	notes []Annotation
+}
+
+// Annotation marks an interval (or instant, if End <= Start) on the
+// visualisation timeline, in a row named by Row: for example a crash on
+// row "n2" or a partition on row "network".
+type Annotation struct {
+	Row         string
+	Start, End  time.Duration
+	Description string
+	Details     string
+}
+
+// Annotate adds a timeline annotation. It does not affect checking.
+func (h *History) Annotate(a Annotation) { h.notes = append(h.notes, a) }
+
+// Annotations returns the annotations added so far.
+func (h *History) Annotations() []Annotation { return h.notes }
 
 // Add records a finished operation.
 func (h *History) Add(op Op) { h.ops = append(h.ops, op) }
@@ -160,5 +179,11 @@ func (h *History) Linearizable(timeout time.Duration) Verdict {
 // which shows the longest linearizable prefix of a failing history.
 func (h *History) Visualize(path string) error {
 	_, info := porcupine.CheckOperationsVerbose(KVModel, h.toPorcupine(), 30*time.Second)
+	var notes []porcupine.Annotation
+	for _, a := range h.notes {
+		notes = append(notes, porcupine.Annotation{Tag: a.Row, Start: int64(a.Start), End: int64(a.End),
+			Description: a.Description, Details: a.Details, BackgroundColor: "#f3d9a4"})
+	}
+	info.AddAnnotations(notes)
 	return porcupine.VisualizePath(KVModel, info, path)
 }

@@ -369,6 +369,7 @@ func (c *cluster) fail(name, format string, args ...any) {
 	c.res.Violation = name + ": " + fmt.Sprintf(format, args...)
 	c.res.ViolationAt = c.w.Now()
 	c.w.Emit(sim.Event{Kind: "violation", Detail: c.res.Violation})
+	c.hist.Annotate(check.Annotation{Row: "violation", Start: c.w.Now(), Description: name, Details: c.res.Violation})
 }
 
 // guard runs peer code and turns a panic into a violation.

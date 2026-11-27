@@ -1,7 +1,9 @@
 package debug
 
 import (
+	"encoding/json"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -173,5 +175,37 @@ func TestDiff_FindsFirstDivergence(t *testing.T) {
 	d.Print(&out, "correct", "mutated")
 	if !strings.Contains(out.String(), "first difference at event") {
 		t.Fatalf("report:\n%s", out.String())
+	}
+}
+
+// Every received message's clock dominates the clock it was sent with, and
+// each node's own entry only grows.
+func TestShiViz_ClocksRespectCausality(t *testing.T) {
+	s := Open(harness.DefaultOptions(2))
+	s.Forward(1500)
+	var out strings.Builder
+	if err := ShiViz(s.Events(), &out); err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	if len(lines) < 100 {
+		t.Fatalf("only %d ShiViz lines", len(lines))
+	}
+	re := regexp.MustCompile(`^n(\d+) (\{[^}]*\}) (.*)$`)
+	last := map[string]int{}
+	for _, l := range lines {
+		m := re.FindStringSubmatch(l)
+		if m == nil {
+			t.Fatalf("line does not match the documented regex: %q", l)
+		}
+		var vc map[string]int
+		if err := json.Unmarshal([]byte(m[2]), &vc); err != nil {
+			t.Fatalf("bad clock in %q: %v", l, err)
+		}
+		self := "n" + m[1]
+		if vc[self] <= last[self] {
+			t.Fatalf("%s's own clock did not grow: %q", self, l)
+		}
+		last[self] = vc[self]
 	}
 }
