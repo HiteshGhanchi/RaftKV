@@ -275,6 +275,17 @@ from later messages and apply in order.
 **Exercise** (owner): rewrite `maybeCommit`, then enable `commit-prev-term` and replay seed 262
 (`./bin/raftlab-chaos -seed 262 -mutation commit-prev-term -v | tail -50`).
 
+**Exercise** (owner): the AppendEntries receiver. Delete the bodies of `handleAppend`
+(`raft/raft.go`) and `raftLog.maybeAppend` (`raft/log.go`) and rewrite them from Figure 2,
+"AppendEntries RPC, Receiver implementation", rules 2–5. Rule 1 (reject a stale term) is already
+handled for every message type in `Step`, so leave that alone. Things to get right: what the reply
+says on a rejection (the hint the leader uses to
+skip back), deleting a conflicting entry *and everything after it* but never an entry that
+already matches, and moving the commit index to `min(leaderCommit, index of last new entry)`.
+Done when `go test ./raft -run 'AppendEntries|CommittedEntryNeverTruncated|Figure7|BacksUp|Replication'`,
+then `go test ./...` and `make chaos SEEDS=500` pass, and the `accept-stale-term` regression seed
+still fails when that mutation is enabled.
+
 ---
 
 ## Step 8. Reads, Ready and snapshots: `raft/raft.go` (last part)
@@ -292,6 +303,15 @@ from later messages and apply in order.
   `handleSnapshot` installs one from the leader.
 
 **Checkpoint**: `go test ./raft`: all 20 Raft tests (26 counting the Figure 7 subtests).
+
+**Exercise** (owner): the ReadIndex path. Delete the bodies of `ReadIndex`, `processReads` and
+`handleHeartbeatResp` (`raft/raft.go`) and rewrite them from thesis §6.4 (steps 1–4 of the
+ReadIndex algorithm). Things to get right: refusing on a follower, refusing until the leader has
+committed an entry of its own term, recording the commit index *before* the heartbeat round,
+counting acknowledgements per read context (the leader counts itself), and releasing reads in
+order. Keep the two-line `mutation.StaleRead` block at the top of `ReadIndex`: the bug zoo needs
+it. Done when `go test ./raft -run ReadIndex`, then `go test ./...` and `make chaos SEEDS=500`
+pass, and the `stale-read` regression seed still fails with that mutation enabled.
 
 **Interview questions**
 1. Why does ReadIndex need the "committed an entry in its term" step?

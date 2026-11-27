@@ -18,7 +18,7 @@ owner asked for the whole project in one pass (2026-11-19); each can be revisite
 | Q2 | Time budget per week? | The original plan assumed ~6 h/week (about 40 weeks). | Superseded: the owner asked for everything to be built in one session on 2026-11-19. Learning the code is now the time sink; `docs/BUILD_GUIDE.md` is ordered for that. | owner |
 | Q3 | Which Go version? | 1.22 is out of upstream support; newer versions add nothing this code needs. | Stay on the installed **Go 1.22.2** (`go.mod` says `go 1.22`). It already has `math/rand/v2`, range-over-int and `ServeMux` method patterns, all used here. CI also tests the latest stable Go. Upgrading locally is recommended but not required. | default |
 | Q4 | **Is the owner taking (or about to take) a course that uses the MIT 6.5840 Raft labs?** | Publishing a Raft implementation can break that course's academic-integrity rules. | **[ANSWERED 2026-11-22]** No. The owner's completed course was a blockchain course, not one using these labs, so the repository can be public. | owner |
-| Q5 | Public repo, CI? | Free GitHub Actions minutes for public repos; thousands of seeds per CI run. | **Not pushed** (owner, 2026-11-19: keep it local). `.github/workflows/ci.yml` is ready for when it is pushed: vet, tests, race detector, 2000-seed chaos sweep. | owner |
+| Q5 | Public repo, CI? | Free GitHub Actions minutes for public repos; thousands of seeds per CI run. | **Public** at github.com/HiteshGhanchi/RaftKV since 2026-11-22 (owner). The first CI run passed on Go 1.22 and stable: vet, tests, race detector, 2000-seed chaos sweep. | owner |
 | Q6 | Benchmark hardware? | Single-laptop numbers can't speak for a real cluster. | Only the development laptop (i5-12500H, 16 threads, 7.4 GB RAM, NVMe ext4). Every benchmark says "single machine, loopback" next to its number. | default |
 | Q7 | How strict is the step-by-step process? | The original rule was "the owner writes the spec and the intent of each test, and tests are approved before the code that makes them pass". | The owner asked for the complete project in one go, so the approval gate was skipped for this pass. To make the code interview-defensible, re-implement `handleVote` and `maybeCommit` from memory against the existing tests (exercises in `docs/BUILD_GUIDE.md`, steps 6 and 7). | owner |
 | Q8 | **Where will the blog post live?** | The resume link needs a stable URL. | **[OPEN]** Draft is `docs/WRITEUP.md`. | owner |
@@ -145,3 +145,60 @@ planning files are kept out of git through `.git/info/exclude`.
 | 1 week | Read `docs/BUILD_GUIDE.md` steps 1–10 and re-implement `handleVote`, `maybeCommit` and `maybeAppend` from memory against the tests. Read the TLC Figure 8 trace (`results/tlc-figure8-trace.txt`) step by step against the paper's figure. |
 | 1 month | All of the above, plus: publish the blog post (`docs/WRITEUP.md`), push the repo, and run the benchmarks on two or three real machines. |
 | 3 months | Add single-server membership change with its own bug-zoo entry (the 2015 single-server bug), lease reads with a clock-skew bug-zoo entry, and Porcupine visualisations of each bug-zoo failure in the docs. Then start the replay-debugger project on top of `sim/` and `check/`. |
+
+---
+
+## 5. Plan v2 (approved by the owner 2026-11-27)
+
+The full plan, with effort estimates and sources, is in [`PLAN_V2.md`](PLAN_V2.md). Order:
+ownership gate → P1 replay debugger (with swarm testing) → P8.1 automatic mutation testing → P2
+browser site → P8.3 open-loop benchmark → P3 Raft features → P8.5 / P8.2b → P4 hardening → P8.8 →
+P5 formal methods → P6 etcd adapter. Every phase still starts with its own design note and owner
+approval.
+
+### Open questions for v2
+
+| ID | Question | Why it matters | Answer | Status |
+|---|---|---|---|---|
+| Q9 | Weekly hours available? | Sets the pace of the ownership gate and reviews. | **[OPEN]** (6 h/week was the earlier figure.) | owner |
+| Q10 | Hardware for multi-machine tests (P4.6)? | Decides whether P4.6 needs cloud machines. | **[OPEN]** | owner |
+| Q11 | Which phases matter most? | Can reorder the plan. | **[OPEN]** The approved order assumes debugger, website, P8.1. | owner |
+| Q12 | Ownership gate status? | P1 code waits for it. | **[OPEN]** Exercises for all four functions are in `docs/BUILD_GUIDE.md`; progress goes in `docs/OWNERSHIP.md`. | owner |
+| Q13 | Website address? | Links on the resume and README. | **[OPEN]** `hiteshghanchi.github.io/RaftKV` costs nothing; a custom domain costs money. | owner |
+| Q14 | Analytics on the site? | Evidence of real use vs. privacy. | **[OPEN]** Proposed: GoatCounter (cookieless) or none. | owner |
+
+### Design decisions for v2 (two options each; reasoning in `PLAN_V2.md`)
+
+**V1. Time travel.** (a) In-memory checkpoints. (b) Deterministic re-execution to step k − n.
+**Chosen: (b).** The simulator's event queue holds Go closures, which cannot be deep-copied, and a
+full run takes about 50 ms native. To be confirmed by measurement (`results/debug-back.json`);
+checkpoints are reconsidered only if `Back` p99 exceeds 200 ms.
+
+**V2. Breakpoints.** (a) A fixed set of predicates combined with `and`. (b) An embedded expression
+language. **Chosen: (a):** it covers every planned use without a new dependency or a bigger wasm.
+
+**V3. Trace hash input.** (a) Hash the JSON form. (b) Hash a canonical binary encoding; JSON
+Lines only when a sink is attached. **Chosen: (b):** faster, and free of formatting ambiguity. Every
+trace hash changes once; no test stores literal hashes.
+
+**V4. Fault schedule.** (a) Keep drawing faults from the RNG during the run. (b) Record resolved
+faults as data and replay them without the RNG, with tick and wake-up jitter moved to their own
+stream. **Chosen: (b):** it is what makes shrinking and shareable links possible. It moves every
+seed's behaviour once, so the bug zoo is re-run in the same commit, together with swarm testing
+(P8.2a), which changes per-seed configuration in the same place.
+
+**V5. Shrinking target.** (a) The shrunk run must reproduce the exact violation text. (b) It must
+violate the same property. **Chosen: (b):** message delays still come from the seed, so details
+such as indexes shift when faults are removed.
+
+**V6. WebAssembly toolchain.** (a) Standard Go (`GOOS=js GOARCH=wasm`). (b) TinyGo. **Chosen:
+(a):** a spike on 2026-11-27 compiled every simulated package unchanged to 849,825 bytes gzipped,
+with trace hashes identical to native on 53 runs (a spike outside the repo; P2 adds a command and a `results/` file for it before it is quoted in the README). TinyGo was not tested.
+
+**V7. Website frontend.** (a) Plain TypeScript and SVG built with esbuild. (b) Svelte or Preact.
+**Chosen: (a):** at most 5 nodes on screen, few dependencies, easy to explain.
+
+**V8. Phases not planned.** P7 sharding, P8.9 cross-shard transactions, P8.7 an own
+linearizability checker, and a gRPC transport (unless profiling shows the transport dominates).
+P8.4 only in a scoped form. Reason: high cost for little extra signal over the planned phases.
+
