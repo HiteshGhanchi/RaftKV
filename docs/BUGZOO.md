@@ -15,16 +15,41 @@ Add `-viz out.html` to get Porcupine's visualisation of a non-linearizable histo
 
 | Mutation | Caught | First seed | Detected by |
 |---|---|---|---|
-| skip-up-to-date-check | 2600/3000 | 1 | LeaderCompleteness |
-| apply-before-commit | 2344/3000 | 1 | StateMachineSafety |
-| no-dedup | 2394/3000 | 1 | Porcupine |
-| skip-fsync | 883/3000 | 1 | LeaderCompleteness |
-| stale-read | 52/3000 | 18 | Porcupine |
-| accept-stale-term | 47/3000 | 27 | StateMachineSafety |
-| commit-prev-term | 5/3000 | 262 | LeaderCompleteness |
-| forget-vote | 2/3000 | 1915 | ElectionSafety |
+| skip-up-to-date-check | 2601/3000 | 1 | LeaderCompleteness |
+| no-dedup | 2413/3000 | 1 | Porcupine |
+| apply-before-commit | 2361/3000 | 1 | StateMachineSafety |
+| skip-fsync | 857/3000 | 3 | LeaderCompleteness |
+| stale-read | 54/3000 | 35 | Porcupine |
+| accept-stale-term | 39/3000 | 28 | StateMachineSafety |
+| commit-prev-term | 6/3000 | 151 | LeaderCompleteness |
+| forget-vote | 3/3000 | 179 | ElectionSafety |
 
-**8/8 caught, median seeds to first detection 9.5.**
+**8/8 caught, median seeds to first detection 15.5.**
+
+These numbers changed on 2026-11-27, when the fault schedule became replayable data and timing
+jitter got its own random stream (`docs/DECISIONS.md` V4). That moves every seed's behaviour, so
+the first failing seeds are new; the earlier run (2026-11-19) had the same 8/8 with a median of 9.5.
+
+### Swarm testing (`-swarm`, `results/bugzoo-swarm.json`)
+
+With swarm testing, each seed also switches off a random subset of fault kinds and picks how
+strongly faults aim at the leader. One 3000-seed run of each:
+
+| Mutation | Default: caught | Swarm: caught | Default: first seed | Swarm: first seed |
+|---|---|---|---|---|
+| skip-up-to-date-check | 2601 | 2338 | 1 | 2 |
+| no-dedup | 2413 | 2508 | 1 | 1 |
+| apply-before-commit | 2361 | 2152 | 1 | 2 |
+| skip-fsync | 857 | 603 | 3 | 3 |
+| stale-read | 54 | 51 | 35 | 2 |
+| accept-stale-term | 39 | 73 | 28 | 54 |
+| commit-prev-term | 6 | 4 | 151 | 1302 |
+| forget-vote | 3 | 2 | 179 | 450 |
+
+Swarm reaches its first detection sooner (median 2.5 seeds against 15.5) and catches
+`accept-stale-term` more often, but it catches the rarest bugs (`commit-prev-term`, `forget-vote`)
+and `skip-fsync` *less* often. This is a single run of each, not repeated, so small differences
+are noise. The default stays as it is; swarm is available with `-swarm`.
 
 ---
 
@@ -62,7 +87,7 @@ Add `-viz out.html` to get Porcupine's visualisation of a non-linearizable histo
   new leader has committed newer writes.
 - **How it is caught**: Porcupine (a read returning an old value after a newer write finished).
   Visible only while a deposed leader still believes it leads, so it needs seeds where CheckQuorum
-  is off or a pause hides the new leader; that's why it is only 52/3000.
+  is off or a pause hides the new leader; that's why it is only 54/3000.
 
 ### accept-stale-term
 - **Breaks**: AppendEntries receiver rule 1.
@@ -76,7 +101,7 @@ Add `-viz out.html` to get Porcupine's visualisation of a non-linearizable histo
 - **Breaks**: Figure 2 Leaders rule 4's `log[N].term == currentTerm`.
 - **What goes wrong**: exactly Figure 8. A leader commits an old-term entry because a majority
   stores it, crashes, and a server with a newer conflicting entry is elected and overwrites it.
-- **How it is caught**: `LeaderCompleteness` when the overwriting leader is elected. Rare (5/3000).
+- **How it is caught**: `LeaderCompleteness` when the overwriting leader is elected. Rare (6/3000).
   The schedule needs about five elections in a specific order, and the leader's no-op usually rides
   in the same message as the old entry, so the buggy rule rarely acts alone. Seeds with one entry
   per message make it possible. The unit test
@@ -88,7 +113,7 @@ Add `-viz out.html` to get Porcupine's visualisation of a non-linearizable histo
 - **Breaks**: votedFor is persistent state.
 - **What goes wrong**: a node votes, crashes, forgets, and votes again in the same term for a
   different candidate. Two leaders in one term.
-- **How it is caught**: `ElectionSafety`. Rarest (2/3000): it needs a crash between granting a vote
+- **How it is caught**: `ElectionSafety`. Rarest (3/3000): it needs a crash between granting a vote
   and a second candidate of the *same* term asking.
 
 ---

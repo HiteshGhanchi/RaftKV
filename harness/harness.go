@@ -61,6 +61,11 @@ type Options struct {
 	CheckTimeout     time.Duration
 	TraceLog         bool
 
+	// Schedule, if set, replays these faults instead of drawing them from
+	// the seed (see schedule.go). Every other random choice still comes from
+	// the seed.
+	Schedule *Schedule `json:",omitempty"`
+
 	// Sink, if set, receives every trace event as it happens. Observing a
 	// run never changes it.
 	Sink func(sim.Event) `json:"-"`
@@ -91,6 +96,25 @@ func DefaultOptions(seed uint64) Options {
 	}
 }
 
+// SwarmOptions is DefaultOptions plus swarm testing (Groce et al., ISSTA
+// 2012): each seed also switches off a random subset of fault kinds and picks
+// how strongly faults aim at the leader, so that rare combinations (for
+// example crashes without partitions) occur in more runs. At least one fault
+// kind always stays on.
+func SwarmOptions(seed uint64) Options {
+	o := DefaultOptions(seed)
+	r := sim.NewRand(seed ^ 0x5eed5a1)
+	for {
+		f := o.Faults
+		f.Crash, f.Partition, f.OneWay, f.Pause, f.Slow = r.IntN(2) == 0, r.IntN(2) == 0, r.IntN(2) == 0, r.IntN(2) == 0, r.IntN(2) == 0
+		if f.Crash || f.Partition || f.OneWay || f.Pause || f.Slow {
+			f.LeaderBias = []float64{0, 0.5, 0.9}[r.IntN(3)]
+			o.Faults = f
+			return o
+		}
+	}
+}
+
 // Result summarises a run.
 type Result struct {
 	Seed      uint64
@@ -108,6 +132,10 @@ type Result struct {
 	Steps                        uint64
 	TraceHash                    uint64
 	Net                          sim.NetStats
+
+	// Schedule is every fault the run injected, resolved to concrete nodes
+	// and durations. Passing it back in Options.Schedule replays the run.
+	Schedule *Schedule
 
 	History  *check.History `json:"-"`
 	TraceLog []string       `json:"-"`
@@ -147,9 +175,11 @@ type cluster struct {
 	opt   Options
 	w     *sim.World
 	net   *sim.Network[raft.Message]
-	frng  *rand.Rand // fault schedule
+	frng  *rand.Rand // fault decisions (unused when a schedule is replayed)
 	crng  *rand.Rand // clients
 	prng  *rand.Rand // seeds for restarted peers
+	jrng  *rand.Rand // timing jitter: clock skew, tick phase, wake-up order
+	sched Schedule   // faults injected so far
 	ids   []raft.NodeID
 	disks map[raft.NodeID]*sim.Disk
 	peers map[raft.NodeID]*peer.Peer
@@ -189,14 +219,14 @@ func Run(opt Options) Result {
 	if opt.Sink != nil {
 		c.w.SetSink(opt.Sink)
 	}
-	c.frng, c.crng, c.prng = c.w.Fork(), c.w.Fork(), c.w.Fork()
+	c.frng, c.crng, c.prng, c.jrng = c.w.Fork(), c.w.Fork(), c.w.Fork(), c.w.Fork()
 	c.net = sim.NewNetwork(c.w, opt.Net, func(m raft.Message) string { return m.String() })
 	for i := 1; i <= opt.Nodes; i++ {
 		c.ids = append(c.ids, raft.NodeID(i))
 	}
 	for _, id := range c.ids {
 		c.disks[id] = sim.NewDisk(c.w.Fork())
-		c.skew[id] = (c.frng.Float64()*2 - 1) * opt.Faults.ClockSkew
+		c.skew[id] = (c.jrng.Float64()*2 - 1) * opt.Faults.ClockSkew
 		c.net.Register(id, c.deliverFunc(id))
 		c.start(id)
 		c.scheduleTick(id)
@@ -212,6 +242,7 @@ func Run(opt Options) Result {
 
 	c.w.RunUntilOr(c.end, func() bool { return c.failed })
 
+	c.res.Schedule = &c.sched
 	c.res.Steps = c.w.Steps()
 	c.res.TraceHash = c.w.TraceHash()
 	c.res.Net = c.net.Stats
@@ -320,7 +351,7 @@ func (c *cluster) crash(id raft.NodeID) {
 func (c *cluster) paused(id raft.NodeID) bool { return c.pause[id] > c.w.Now() }
 
 func (c *cluster) jitter() time.Duration {
-	return time.Duration(c.frng.Int64N(int64(10 * time.Millisecond)))
+	return time.Duration(c.jrng.Int64N(int64(10 * time.Millisecond)))
 }
 
 func (c *cluster) deliverFunc(id raft.NodeID) func(raft.NodeID, raft.Message) {
@@ -349,123 +380,7 @@ func (c *cluster) scheduleTick(id raft.NodeID) {
 		}
 		c.w.Schedule(period, sim.Event{Kind: "tick", Node: id}, tick)
 	}
-	c.w.Schedule(time.Duration(c.frng.Int64N(int64(period))), sim.Event{Kind: "tick", Node: id}, tick)
-}
-
-// ------------------------------------------------------------- faults
-
-func (c *cluster) between(lo, hi time.Duration) time.Duration {
-	return lo + time.Duration(c.frng.Int64N(int64(hi-lo)+1))
-}
-
-func (c *cluster) scheduleFaults() {
-	f := c.opt.Faults
-	var kinds []func()
-	if f.Crash {
-		kinds = append(kinds, c.faultCrash)
-	}
-	if f.Partition {
-		kinds = append(kinds, c.faultPartition)
-	}
-	if f.OneWay {
-		kinds = append(kinds, c.faultOneWay)
-	}
-	if f.Pause {
-		kinds = append(kinds, c.faultPause)
-	}
-	if f.Slow {
-		kinds = append(kinds, c.faultSlow)
-	}
-	if len(kinds) == 0 || f.Interval == 0 {
-		return
-	}
-	var next func()
-	next = func() {
-		if c.w.Now() >= c.opt.Duration {
-			return
-		}
-		kinds[c.frng.IntN(len(kinds))]()
-		c.w.Schedule(c.between(f.Interval/2, f.Interval*3/2), sim.Event{Kind: "fault"}, next)
-	}
-	c.w.Schedule(c.between(f.Interval/2, f.Interval*3/2), sim.Event{Kind: "fault"}, next)
-}
-
-func (c *cluster) randomNode() raft.NodeID { return c.ids[c.frng.IntN(len(c.ids))] }
-
-// target picks the node a fault hits: often the current leader, because
-// that is where the interesting failures are (Jepsen does the same).
-func (c *cluster) target() raft.NodeID {
-	if c.frng.Float64() < c.opt.Faults.LeaderBias {
-		var best raft.NodeID
-		var bestTerm uint64
-		for _, id := range c.ids {
-			if p := c.peers[id]; p != nil {
-				if st := p.Status(); st.State == raft.Leader && st.Term >= bestTerm {
-					best, bestTerm = id, st.Term
-				}
-			}
-		}
-		if best != raft.None {
-			return best
-		}
-	}
-	return c.randomNode()
-}
-
-func (c *cluster) faultCrash() {
-	id := c.target()
-	if c.peers[id] == nil {
-		return
-	}
-	c.crash(id)
-	c.w.Schedule(c.between(5*time.Millisecond, 800*time.Millisecond), sim.Event{Kind: "restart", Node: id}, func() {
-		if c.peers[id] == nil && !c.failed {
-			c.start(id)
-		}
-	})
-}
-
-func (c *cluster) faultPartition() {
-	ids := slices.Clone(c.ids)
-	c.frng.Shuffle(len(ids), func(i, j int) { ids[i], ids[j] = ids[j], ids[i] })
-	if t := c.target(); true {
-		// Put the target alone or in the minority side.
-		i := slices.Index(ids, t)
-		ids[0], ids[i] = ids[i], ids[0]
-	}
-	k := 1 + c.frng.IntN((len(ids)-1)/2+1)
-	c.net.Heal()
-	c.net.Partition(ids[:k], ids[k:])
-	c.res.Partitions++
-	c.w.Emit(sim.Event{Kind: "partition", Detail: fmt.Sprintf("%v | %v", ids[:k], ids[k:])})
-	c.w.Schedule(c.between(100*time.Millisecond, time.Second), sim.Event{Kind: "heal-partition"}, c.net.Heal)
-}
-
-func (c *cluster) faultOneWay() {
-	a, b := c.randomNode(), c.randomNode()
-	if a == b {
-		return
-	}
-	c.net.Block(a, b)
-	c.res.OneWayBlocks++
-	c.w.Emit(sim.Event{Kind: "block", Node: a, Peer: b})
-	c.w.Schedule(c.between(100*time.Millisecond, time.Second), sim.Event{Kind: "unblock", Node: a, Peer: b}, func() { c.net.Unblock(a, b) })
-}
-
-func (c *cluster) faultSlow() {
-	normal := c.opt.Net
-	slow := normal
-	slow.MaxDelay = 250 * time.Millisecond
-	c.net.SetConfig(slow)
-	c.w.Emit(sim.Event{Kind: "slow"})
-	c.w.Schedule(c.between(100*time.Millisecond, 600*time.Millisecond), sim.Event{Kind: "net-normal"}, func() { c.net.SetConfig(normal) })
-}
-
-func (c *cluster) faultPause() {
-	id := c.target()
-	c.pause[id] = c.w.Now() + c.between(30*time.Millisecond, 400*time.Millisecond)
-	c.res.Pauses++
-	c.w.Emit(sim.Event{Kind: "pause", Node: id, Attrs: []sim.Attr{sim.A("until", int64(c.pause[id]))}})
+	c.w.Schedule(time.Duration(c.jrng.Int64N(int64(period))), sim.Event{Kind: "tick", Node: id}, tick)
 }
 
 func (c *cluster) healAll() {

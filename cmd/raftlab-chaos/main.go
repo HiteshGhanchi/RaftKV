@@ -38,6 +38,7 @@ func main() {
 		stopFail = flag.Bool("stop", false, "sweep: stop at the first failing seed")
 		traceOut = flag.String("trace", "", "single seed: write the structured trace (JSON Lines) to this file")
 		overhead = flag.Bool("overhead", false, "measure tracing overhead over the sweep's seeds (one worker)")
+		swarm    = flag.Bool("swarm", false, "swarm testing: each seed also disables a random subset of fault kinds")
 	)
 	flag.Parse()
 
@@ -46,9 +47,13 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
+	base := harness.DefaultOptions
+	if *swarm {
+		base = harness.SwarmOptions
+	}
 	optsFor := func(m mutation.Set) func(uint64) harness.Options {
 		return func(s uint64) harness.Options {
-			o := harness.DefaultOptions(s)
+			o := base(s)
 			o.Mutations = m
 			return o
 		}
@@ -97,7 +102,11 @@ func main() {
 		measureOverhead(*start, *seeds, *out)
 
 	case *bugzoo:
-		runBugZoo(*start, *seeds, *workers, *out, optsFor)
+		name := "default"
+		if *swarm {
+			name = "swarm"
+		}
+		runBugZoo(*start, *seeds, *workers, *out, name, optsFor)
 
 	default:
 		t0 := time.Now()
@@ -145,7 +154,7 @@ type zooRow struct {
 	FirstFailure  string
 }
 
-func runBugZoo(start, n uint64, workers int, out string, optsFor func(mutation.Set) func(uint64) harness.Options) {
+func runBugZoo(start, n uint64, workers int, out, optionsName string, optsFor func(mutation.Set) func(uint64) harness.Options) {
 	var rows []zooRow
 	for _, m := range mutation.All {
 		t0 := time.Now()
@@ -184,7 +193,7 @@ func runBugZoo(start, n uint64, workers int, out string, optsFor func(mutation.S
 		}
 	}
 	fmt.Printf("%d/%d injected bugs caught; median seeds to first detection = %.1f\n", caught, len(rows), median)
-	writeJSON(out, map[string]any{"start": start, "seeds": n, "caught": caught, "total": len(rows), "medianSeedsToDetect": median, "rows": rows})
+	writeJSON(out, map[string]any{"start": start, "seeds": n, "options": optionsName, "caught": caught, "total": len(rows), "medianSeedsToDetect": median, "rows": rows})
 }
 
 // measureOverhead runs the same seeds three times on one goroutine: with no

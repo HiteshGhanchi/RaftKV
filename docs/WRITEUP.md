@@ -15,7 +15,7 @@ raftlab makes timing an input. The Raft core is a pure state machine with no clo
 and no I/O, driven by a discrete-event simulator. One seed decides everything: the cluster size,
 every message delay and loss, every crash point, how much of an unsynced write survives, every
 partition and pause, every client retry. A run covering 6 virtual seconds costs under 0.1 s of
-CPU (10,000 runs took 53 s on 16 threads), and a failing seed replays bit for bit.
+CPU (10,000 runs took 22 s on 16 threads), and a failing seed replays bit for bit.
 
 While a run is going, the harness checks Raft's five safety properties continuously: on every
 applied entry and every election, and Log Matching every 50 ms of virtual time. When it ends, it checks the client history for linearizability with Porcupine.
@@ -26,10 +26,10 @@ counting, serve reads without confirming leadership, skip fsync, and so on).
 
 ## Results
 
-- **8/8 injected bugs caught** over 3000 seeds each; median 9.5 seeds to first detection
-  (`results/bugzoo.json`). Two are genuinely rare: Figure 8 (5/3000 seeds) and the double vote
-  after forgetting `votedFor` (2/3000). A few hundred seeds would have missed them.
-- **10,000 chaos runs of correct code**: 0 failures and 1,593,004 client operations, all
+- **8/8 injected bugs caught** over 3000 seeds each; median 15.5 seeds to first detection
+  (`results/bugzoo.json`). Two are genuinely rare: Figure 8 (6/3000 seeds) and the double vote
+  after forgetting `votedFor` (3/3000). A few hundred seeds would have missed them.
+- **10,000 chaos runs of correct code**: 0 failures and 1,592,965 client operations, all
   linearizable (`results/chaos-10000.json`).
 - **Real cluster** (3 nodes in one process on a laptop, real fsync, loopback HTTP): 5,454
   writes/s at p50 5.6 ms / p99 12.1 ms with 32 clients. Batching is worth 8.2x and fsync costs
@@ -58,7 +58,7 @@ counting, serve reads without confirming leadership, skip fsync, and so on).
   torn-write recovery).
 - Built a deterministic simulation harness (seeded clock, network, disk); verified linearizability
   across 10,000 fault-injection runs (1.59M operations), with every failure reproducible from one seed.
-- Injected 8 known Raft bugs; the harness caught 8/8 (median 9.5 seeds to detection). Kept each
+- Injected 8 known Raft bugs; the harness caught 8/8 (median 15.5 seeds to detection). Kept each
   failing seed as a regression test.
 - Specified election and replication in TLA+ and model-checked it with TLC; measured 5.4k writes/s
   and 163 ms median failover on a 3-node cluster.

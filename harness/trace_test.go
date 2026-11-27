@@ -17,7 +17,7 @@ func TestTrace_SinkDoesNotChangeExecution(t *testing.T) {
 	for _, tc := range []struct {
 		seed uint64
 		m    mutation.Set
-	}{{1, 0}, {2, 0}, {3, 0}, {262, mutation.CommitPrevTerm}} {
+	}{{1, 0}, {2, 0}, {3, 0}, {151, mutation.CommitPrevTerm}} {
 		o := DefaultOptions(tc.seed)
 		o.Mutations = tc.m
 		plain := Run(o)

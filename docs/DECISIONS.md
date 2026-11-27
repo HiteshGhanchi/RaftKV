@@ -66,7 +66,7 @@ stable index. A leader that counted unsynced entries and then crashed could lose
 **Chosen: (b).** ReadIndex needs a committed entry from the current term, and the no-op commits old
 entries promptly. Likely side effect (reasoned, not measured): the no-op usually travels in the same
 message as the old-term entry, so the buggy commit rule rarely gets a chance to act alone. That
-probably explains why `commit-prev-term` is caught in only 5/3000 seeds.
+probably explains why `commit-prev-term` is caught in only 6/3000 seeds.
 
 **D5. Replication flow control.**
 (a) One AppendEntries at a time per follower.
@@ -186,6 +186,10 @@ faults as data and replay them without the RNG, with tick and wake-up jitter mov
 stream. **Chosen: (b):** it is what makes shrinking and shareable links possible. It moves every
 seed's behaviour once, so the bug zoo is re-run in the same commit, together with swarm testing
 (P8.2a), which changes per-seed configuration in the same place.
+*Outcome (2026-11-27):* done. A recorded schedule replays to the identical trace
+(`TestSchedule_RecordThenReplayIsIdentical`). The re-run bug zoo is still 8/8 (median 15.5 seeds to
+first detection, `results/bugzoo.json`). Swarm testing was **not** made the default: in one
+3000-seed run it caught the rarest bugs less often (`docs/BUGZOO.md`), so it stays behind `-swarm`.
 
 **V5. Shrinking target.** (a) The shrunk run must reproduce the exact violation text. (b) It must
 violate the same property. **Chosen: (b):** message delays still come from the seed, so details

@@ -189,7 +189,7 @@ expected violation. All of them are replayed with mutations off and must pass.
    shrinking and shareable links valid.
 3. **`TestDebug_BackMatchesFreshRun`**: step to k, go back n, and compare node states and the trace
    hash prefix with a fresh run stepped to k − n. Also, a `violation` breakpoint on
-   commit-prev-term seed 262 stops at the same virtual time as `Result.ViolationAt`.
+   the commit-prev-term regression seed stops at the same virtual time as `Result.ViolationAt`.
 
 ---
 

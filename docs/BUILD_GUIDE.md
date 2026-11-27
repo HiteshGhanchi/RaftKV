@@ -272,8 +272,8 @@ from later messages and apply in order.
 2. Why does committing the current-term no-op also commit every earlier entry?
 3. What is the difference between probing and replicating a follower, and why have both?
 
-**Exercise** (owner): rewrite `maybeCommit`, then enable `commit-prev-term` and replay seed 262
-(`./bin/raftlab-chaos -seed 262 -mutation commit-prev-term -v | tail -50`).
+**Exercise** (owner): rewrite `maybeCommit`, then enable `commit-prev-term` and replay seed 151
+(`./bin/raftlab-chaos -seed 151 -mutation commit-prev-term -v | tail -50`).
 
 **Exercise** (owner): the AppendEntries receiver. Delete the bodies of `handleAppend`
 (`raft/raft.go`) and `raftLog.maybeAppend` (`raft/log.go`) and rewrite them from Figure 2,

@@ -1,0 +1,82 @@
+{
+  "caught": 8,
+  "medianSeedsToDetect": 2.5,
+  "options": "swarm",
+  "rows": [
+    {
+      "Mutation": "commit-prev-term",
+      "Rule": "Figure 2 Leaders rule 4 / §5.4.2: only commit entries from the current term by counting",
+      "Seeds": 3000,
+      "Caught": 4,
+      "FirstSeed": 1302,
+      "SeedsToDetect": 1302,
+      "FirstFailure": "LeaderCompleteness: new leader 2 (term 17) lacks applied entry 60 (term 12)"
+    },
+    {
+      "Mutation": "skip-up-to-date-check",
+      "Rule": "RequestVote receiver rule 2 / §5.4.1: candidate's log must be at least as up-to-date",
+      "Seeds": 3000,
+      "Caught": 2338,
+      "FirstSeed": 2,
+      "SeedsToDetect": 2,
+      "FirstFailure": "LeaderCompleteness: new leader 1 (term 4) lacks applied entry 1 (term 2)"
+    },
+    {
+      "Mutation": "forget-vote",
+      "Rule": "Figure 2 persistent state: votedFor must survive restarts",
+      "Seeds": 3000,
+      "Caught": 2,
+      "FirstSeed": 450,
+      "SeedsToDetect": 450,
+      "FirstFailure": "ElectionSafety: nodes 2 and 1 both leader in term 1"
+    },
+    {
+      "Mutation": "apply-before-commit",
+      "Rule": "All Servers rule 1: apply only entries up to commitIndex",
+      "Seeds": 3000,
+      "Caught": 2152,
+      "FirstSeed": 2,
+      "SeedsToDetect": 2,
+      "FirstFailure": "StateMachineSafety: node 2 applied index 8 term 6, another node applied term 5 there"
+    },
+    {
+      "Mutation": "stale-read",
+      "Rule": "Thesis §6.4: a leader must confirm it is still leader before serving a read",
+      "Seeds": 3000,
+      "Caught": 51,
+      "FirstSeed": 2,
+      "SeedsToDetect": 2,
+      "FirstFailure": "history NOT linearizable"
+    },
+    {
+      "Mutation": "accept-stale-term",
+      "Rule": "AppendEntries receiver rule 1: reply false if term \u003c currentTerm",
+      "Seeds": 3000,
+      "Caught": 73,
+      "FirstSeed": 54,
+      "SeedsToDetect": 54,
+      "FirstFailure": "StateMachineSafety: node 3 applied index 22 term 2, another node applied term 1 there"
+    },
+    {
+      "Mutation": "skip-fsync",
+      "Rule": "Figure 2: persist state before responding to RPCs",
+      "Seeds": 3000,
+      "Caught": 603,
+      "FirstSeed": 3,
+      "SeedsToDetect": 3,
+      "FirstFailure": "LeaderCompleteness: new leader 2 (term 7) lacks applied entry 1 (term 2)"
+    },
+    {
+      "Mutation": "no-dedup",
+      "Rule": "Thesis §6.3: retried commands must take effect exactly once",
+      "Seeds": 3000,
+      "Caught": 2508,
+      "FirstSeed": 1,
+      "SeedsToDetect": 1,
+      "FirstFailure": "history NOT linearizable"
+    }
+  ],
+  "seeds": 3000,
+  "start": 1,
+  "total": 8
+}

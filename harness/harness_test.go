@@ -51,19 +51,7 @@ func TestCorrectCodeSurvivesChaos(t *testing.T) {
 // same seed must pass with correct code. If a change to the code moves these
 // seeds, re-run `raftlab-chaos -bugzoo` and update the table.
 func TestBugZooSeedsStillFail(t *testing.T) {
-	cases := []struct {
-		m    mutation.Set
-		seed uint64
-	}{
-		{mutation.CommitPrevTerm, 262},
-		{mutation.SkipUpToDateCheck, 1},
-		{mutation.ForgetVote, 1915},
-		{mutation.ApplyBeforeCommit, 1},
-		{mutation.StaleRead, 18},
-		{mutation.AcceptStaleTerm, 27},
-		{mutation.SkipFsync, 1},
-		{mutation.NoDedup, 1},
-	}
+	cases := bugZooSeeds
 	if len(cases) != len(mutation.All) {
 		t.Fatal("every mutation needs a regression seed")
 	}
@@ -91,4 +79,20 @@ func TestNoFaultsAllOpsComplete(t *testing.T) {
 	if r.Leaders != 1 {
 		t.Fatalf("fault-free run elected %d leaders, want 1", r.Leaders)
 	}
+}
+
+// bugZooSeeds is the first seed on which each mutation was caught by
+// `raftlab-chaos -bugzoo` (results/bugzoo.json).
+var bugZooSeeds = []struct {
+	m    mutation.Set
+	seed uint64
+}{
+	{mutation.CommitPrevTerm, 151},
+	{mutation.SkipUpToDateCheck, 1},
+	{mutation.ForgetVote, 179},
+	{mutation.ApplyBeforeCommit, 1},
+	{mutation.StaleRead, 35},
+	{mutation.AcceptStaleTerm, 28},
+	{mutation.SkipFsync, 3},
+	{mutation.NoDedup, 1},
 }
