@@ -1,0 +1,28 @@
+{
+  "go": "go1.22.2",
+  "goarch": "amd64",
+  "goos": "linux",
+  "maxSteps": 21724,
+  "medianSteps": 8481,
+  "points": [
+    {
+      "Position": "10% of the run",
+      "P50ms": 0.656,
+      "P99ms": 2.575,
+      "Maxms": 3.082
+    },
+    {
+      "Position": "50% of the run",
+      "P50ms": 4.167,
+      "P99ms": 15.408,
+      "Maxms": 16.584
+    },
+    {
+      "Position": "90% of the run",
+      "P50ms": 9.235,
+      "P99ms": 24.81,
+      "Maxms": 26.341
+    }
+  ],
+  "seeds": 200
+}

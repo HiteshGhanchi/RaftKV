@@ -98,3 +98,17 @@ func Parse(s string) (Set, error) {
 	}
 	return out, nil
 }
+
+// MarshalText writes the set as its names, so saved files stay readable and
+// do not depend on bit positions.
+func (s Set) MarshalText() ([]byte, error) { return []byte(s.String()), nil }
+
+// UnmarshalText reads a set written by MarshalText.
+func (s *Set) UnmarshalText(b []byte) error {
+	v, err := Parse(string(b))
+	if err != nil {
+		return err
+	}
+	*s = v
+	return nil
+}

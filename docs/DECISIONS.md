@@ -173,6 +173,9 @@ approval.
 **Chosen: (b).** The simulator's event queue holds Go closures, which cannot be deep-copied, and a
 full run takes about 10 ms native and about 50 ms in wasm under Node (spike, re-measured 2026-11-27). To be confirmed by measurement (`results/debug-back.json`);
 checkpoints are reconsidered only if `Back` p99 exceeds 200 ms.
+*Outcome (2026-11-27):* measured with `raftlab-debug -measure-back -seeds 200`
+(`results/debug-back.json`): `back 1` at 90% of a run takes 9.2 ms at the median and 24.8 ms at
+p99 natively. Re-execution stays; no checkpoints.
 
 **V2. Breakpoints.** (a) A fixed set of predicates combined with `and`. (b) An embedded expression
 language. **Chosen: (a):** it covers every planned use without a new dependency or a bigger wasm.

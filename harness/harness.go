@@ -200,6 +200,20 @@ type cluster struct {
 
 // Run executes one simulated run.
 func Run(opt Options) Result {
+	s := Start(opt)
+	for s.Step() {
+	}
+	return s.Finish()
+}
+
+// Sim is a run in progress, advanced one event at a time. Run is Start, Step
+// until it returns false, then Finish; the debugger drives the same three
+// calls, so a debugged run is exactly the run the chaos runner sees.
+type Sim struct{ c *cluster }
+
+// Start builds the cluster and schedules everything, without running any
+// event yet.
+func Start(opt Options) *Sim {
 	c := &cluster{
 		opt:        opt,
 		w:          sim.New(opt.Seed),
@@ -239,9 +253,31 @@ func Run(opt Options) Result {
 		c.startClient(i)
 	}
 	c.w.Schedule(opt.Tick*5, sim.Event{Kind: "check"}, c.periodicCheck)
+	return &Sim{c: c}
+}
 
-	c.w.RunUntilOr(c.end, func() bool { return c.failed })
+// Step runs the next event. It returns false, without running anything, once
+// the run has failed or the next event is past the end of the run.
+func (s *Sim) Step() bool {
+	c := s.c
+	if c.failed {
+		return false
+	}
+	at, ok := c.w.NextAt()
+	if !ok || at > c.end {
+		return false
+	}
+	c.w.Step()
+	return true
+}
 
+// Finish ends the run (moving the clock to its end unless it failed),
+// checks linearizability and returns the result. Call it once.
+func (s *Sim) Finish() Result {
+	c := s.c
+	if !c.failed {
+		c.w.AdvanceTo(c.end)
+	}
 	c.res.Schedule = &c.sched
 	c.res.Steps = c.w.Steps()
 	c.res.TraceHash = c.w.TraceHash()
@@ -258,12 +294,70 @@ func Run(opt Options) Result {
 	if c.failed {
 		c.res.Linearizability = "not checked (run stopped at violation)"
 	} else {
-		c.res.Linearizability = c.hist.Linearizable(opt.CheckTimeout)
+		c.res.Linearizability = c.hist.Linearizable(c.opt.CheckTimeout)
 	}
-	if opt.TraceLog {
+	if c.opt.TraceLog {
 		c.res.TraceLog = c.w.TraceLog()
 	}
 	return c.res
+}
+
+// Now is the current virtual time.
+func (s *Sim) Now() time.Duration { return s.c.w.Now() }
+
+// Steps is the number of events run so far.
+func (s *Sim) Steps() uint64 { return s.c.w.Steps() }
+
+// End is the virtual time at which the run ends.
+func (s *Sim) End() time.Duration { return s.c.end }
+
+// Violation is the first safety violation, or "".
+func (s *Sim) Violation() string { return s.c.res.Violation }
+
+// TraceHash summarises the execution so far.
+func (s *Sim) TraceHash() uint64 { return s.c.w.TraceHash() }
+
+// Schedule returns the faults injected so far.
+func (s *Sim) Schedule() []Fault { return s.c.sched.Faults }
+
+// InFlight lists messages sent but not yet delivered or dropped.
+func (s *Sim) InFlight() []sim.InFlight { return s.c.net.InFlight() }
+
+// LogEntry is one entry of a node's log as the debugger shows it.
+type LogEntry struct {
+	Index, Term uint64
+	Noop        bool
+	Size        int
+}
+
+// NodeState is what the debugger shows about one node.
+type NodeState struct {
+	ID          raft.NodeID
+	Up          bool
+	PausedUntil time.Duration // > now while paused
+	Status      raft.Status   // zero when down
+	Log         []LogEntry    // entries after the last snapshot
+}
+
+// Nodes returns the state of every node, in id order.
+func (s *Sim) Nodes() []NodeState {
+	c := s.c
+	out := make([]NodeState, 0, len(c.ids))
+	for _, id := range c.ids {
+		ns := NodeState{ID: id}
+		if c.pause[id] > c.w.Now() {
+			ns.PausedUntil = c.pause[id]
+		}
+		if p := c.peers[id]; p != nil {
+			ns.Up = true
+			ns.Status = p.Status()
+			for _, e := range p.Node().Entries() {
+				ns.Log = append(ns.Log, LogEntry{Index: e.Index, Term: e.Term, Noop: e.Type == raft.EntryNoop, Size: len(e.Data)})
+			}
+		}
+		out = append(out, ns)
+	}
+	return out
 }
 
 // fail records the first safety violation and stops the run.

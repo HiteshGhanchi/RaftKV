@@ -51,7 +51,7 @@ func (e Event) Get(k string) (int64, bool) {
 // String renders the event as one human-readable line.
 func (e Event) String() string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "%d %s", e.At, e.Kind)
+	fmt.Fprintf(&b, "%v %s", e.At, e.Kind)
 	if e.Node != 0 {
 		fmt.Fprintf(&b, " n%d", e.Node)
 	}
